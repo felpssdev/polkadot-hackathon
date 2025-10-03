@@ -1,20 +1,29 @@
 'use client'
 
-import { Play } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/8bit/card'
+import { Sparkles } from 'lucide-react'
 
 export function QuickTour() {
   return (
-    <Card className="pixelated mx-6 bg-gradient-to-br from-primary/40 to-secondary/40 border-primary/50 overflow-hidden">
-      <CardContent className="relative p-8">
-        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20" />
-        <div className="relative flex items-center justify-between">
-          <h3 className="text-xl font-bold tracking-wide">Quick App Tour</h3>
-          <div className="w-16 h-16 rounded-full bg-background/80 flex items-center justify-center border-4 border-primary pixelated">
-            <Play className="h-8 w-8 text-primary fill-primary ml-1" />
+    <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/20 p-4 cursor-pointer hover:from-primary/25 hover:via-primary/15 hover:to-secondary/25 transition-all duration-300 border-2 border-primary/30 group scanlines">
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+      <div className="relative flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/30 border-2 border-white/20 pixel-blink">
+            <Sparkles className="h-5 w-5 text-white" strokeWidth={2.5} />
+          </div>
+          <div>
+            <h3 className="text-[12px] font-pixel font-bold text-white mb-1">
+              Instalar App
+            </h3>
+            <p className="text-[9px] text-muted-foreground font-medium">
+              Experiência completa
+            </p>
           </div>
         </div>
-      </CardContent>
-    </Card>
+        <button className="px-4 py-2 rounded-lg bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white text-[10px] font-pixel font-bold hover:bg-white/15 active:scale-95 transition-all">
+          Instalar
+        </button>
+      </div>
+    </div>
   )
 }

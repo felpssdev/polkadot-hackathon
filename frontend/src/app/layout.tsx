@@ -1,6 +1,11 @@
 import type { Metadata } from 'next'
-import { Press_Start_2P as PressStart2P } from 'next/font/google'
+import { Inter, Press_Start_2P as PressStart2P } from 'next/font/google'
 import './globals.css'
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+})
 
 const pixelFont = PressStart2P({
   weight: '400',
@@ -9,8 +14,8 @@ const pixelFont = PressStart2P({
 })
 
 export const metadata: Metadata = {
-  title: 'P2P.ME - 8bit Wallet',
-  description: 'Polkadot Hackathon - Latin Hack',
+  title: 'P2P.ME - Polkadot to BRL',
+  description: 'Revolucionando pagamentos Polkadot via PIX',
 }
 
 export default function RootLayout({
@@ -19,8 +24,10 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${pixelFont.variable} font-pixel antialiased`}>
+    <html lang="pt-BR" className="dark">
+      <body
+        className={`${inter.variable} ${pixelFont.variable} font-sans antialiased`}
+      >
         {children}
       </body>
     </html>

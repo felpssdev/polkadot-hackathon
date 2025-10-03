@@ -15,48 +15,45 @@ import { BottomNavigation } from '@/components/features/bottom-navigation'
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className="min-h-screen bg-background pb-28">
       <Header />
 
-      <main className="max-w-lg mx-auto space-y-8 py-4">
+      <main className="max-w-md mx-auto space-y-5 py-4 px-5">
         {/* Balance Section */}
-        <BalanceCard
-          buyPrice="R$ 5,35"
-          balance="$0.00"
-          balanceInLocal="R$ 0,00"
-        />
+        <BalanceCard balance="R$ 0,00" balanceInLocal="≈ $0.00 USD" />
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-4 gap-4 px-6">
+        <div className="grid grid-cols-4 gap-2.5">
           <ActionButton
             icon={Wallet}
-            label="Wallet"
+            label="Carteira"
             onClick={() => console.log('Wallet clicked')}
           />
           <ActionButton
             icon={ArrowDownToLine}
-            label="Deposit"
+            label="Depositar"
             onClick={() => console.log('Deposit clicked')}
           />
           <ActionButton
             icon={ArrowUpFromLine}
-            label="Withdraw"
+            label="Sacar"
             onClick={() => console.log('Withdraw clicked')}
           />
           <ActionButton
             icon={Headphones}
-            label="Support"
+            label="Suporte"
             onClick={() => console.log('Support clicked')}
           />
         </div>
 
-        {/* Quick Tour Section */}
+        {/* Install App */}
         <QuickTour />
 
         {/* Carousel Indicators */}
-        <div className="flex justify-center gap-2 px-6">
-          <div className="w-3 h-3 rounded-full bg-muted pixelated" />
-          <div className="w-3 h-3 rounded-full bg-primary pixelated" />
+        <div className="flex justify-center gap-2 py-1">
+          <div className="w-2 h-2 rounded-sm bg-primary shadow-lg shadow-primary/50 pixel-blink" />
+          <div className="w-2 h-2 rounded-sm bg-white/20 border border-white/30" />
+          <div className="w-2 h-2 rounded-sm bg-white/20 border border-white/30" />
         </div>
 
         {/* Transaction Limits */}
