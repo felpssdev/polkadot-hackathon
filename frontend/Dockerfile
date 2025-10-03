@@ -8,10 +8,20 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalar dependências
-RUN npm ci
+RUN npm install
+
+# Copiar arquivos de configuração
+COPY tsconfig.json ./
+COPY next.config.ts ./
+COPY tailwind.config.ts ./
+COPY postcss.config.mjs ./
+COPY components.json ./
+COPY next-env.d.ts ./
+COPY eslint.config.mjs ./
 
 # Copiar o código fonte
-COPY . .
+COPY src ./src
+COPY public ./public
 
 # Expor a porta 3000
 EXPOSE 3000

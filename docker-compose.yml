@@ -6,11 +6,11 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
     environment:
       - NODE_ENV=development
+      - WATCHPACK_POLLING=true
     command: npm run dev
     stdin_open: true
     tty: true
