@@ -1,18 +1,20 @@
+# Use a imagem oficial do Node.js
 FROM node:18-alpine
 
+# Definir o diretório de trabalho
 WORKDIR /app
 
-# Copy package files
+# Copiar package.json e package-lock.json
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Instalar dependências
+RUN npm ci
 
-# Copy source code
+# Copiar o código fonte
 COPY . .
 
-# Expose port
+# Expor a porta 3000
 EXPOSE 3000
 
-# Start the application
+# Comando padrão para desenvolvimento
 CMD ["npm", "run", "dev"]
