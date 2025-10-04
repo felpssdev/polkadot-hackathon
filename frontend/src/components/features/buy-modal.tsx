@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Plus,
 } from 'lucide-react'
+import { mockUserLimits, mockExchangeRate } from '@/lib/mock-data'
 
 interface BuyModalProps {
   isOpen: boolean
@@ -20,8 +21,8 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
   const [showKeyboard, setShowKeyboard] = useState(false)
 
   // Mock data
-  const transactionLimit = 100 // USDC
-  const currentPrice = 5.33 // BRL per DOT
+  const transactionLimit = mockUserLimits.buyLimit
+  const currentPrice = mockExchangeRate
 
   const handleNumberPress = (number: string) => {
     if (number === '.') {

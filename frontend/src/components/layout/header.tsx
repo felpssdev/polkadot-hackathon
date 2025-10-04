@@ -31,7 +31,7 @@ export function Header() {
             </span>
           </div>
           <h1 className="text-[13px] font-pixel font-bold tracking-tight text-white">
-            P2P.ME
+            PolkaPay
           </h1>
         </div>
       </div>

@@ -2,6 +2,11 @@
 
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
+import {
+  mockUserLimits,
+  mockExchangeRate,
+  formatCurrency,
+} from '@/lib/mock-data'
 
 interface FAQItem {
   question: string
@@ -10,29 +15,29 @@ interface FAQItem {
 
 const faqItems: FAQItem[] = [
   {
-    question: 'Quais são os limites padrão?',
-    answer: `Para novos usuários:
-• Limite de Compra: R$ 10 por pedido, 1 pedido por dia (para começar com cautela).
-• Limite de Venda: R$ 100 por pedido, até 10 pedidos por dia (R$ 1.000 limite diário, já que os comerciantes são verificados e prontos para negociar).
+    question: 'What are the default limits?',
+    answer: `For new users:
+• Buy Limit: $10 per order, 1 order per day (to start cautiously).
+• Sell Limit: ${formatCurrency(mockUserLimits.sellLimit * mockExchangeRate, 'BRL')} per order, up to 10 orders per day (${formatCurrency(mockUserLimits.dailyLimit * mockExchangeRate, 'BRL')} daily limit, since merchants are verified and ready to trade).
 
-Para usuários com pelo menos uma verificação zk:
-• Limite de Compra: Seu limite de transação por pedido, até 5 pedidos por dia.
-• Limite de Venda: R$ 100 por pedido, até 10 pedidos por dia (R$ 1.000 limite diário).
+For users with at least one zk verification:
+• Buy Limit: Your transaction limit per order, up to 5 orders per day.
+• Sell Limit: ${formatCurrency(mockUserLimits.sellLimit * mockExchangeRate, 'BRL')} per order, up to 10 orders per day (${formatCurrency(mockUserLimits.dailyLimit * mockExchangeRate, 'BRL')} daily limit).
 
-Limite máximo por transação: R$ 2.000 USDC.
-Limite mensal de pedidos de compra: 25 pedidos.
-Limite de volume anual: R$ 100.000 USDC por usuário.
-Quer limites maiores? Visite a seção Meus Limites para completar verificações zk e desbloquear mais.`,
+Maximum limit per transaction: ${formatCurrency(mockUserLimits.monthlyLimit * mockExchangeRate, 'BRL')}.
+Monthly buy order limit: 25 orders.
+Annual volume limit: ${formatCurrency(mockUserLimits.monthlyLimit * mockExchangeRate * 10, 'BRL')} per user.
+Want higher limits? Visit the My Limits section to complete zk verifications and unlock more.`,
   },
   {
-    question: 'Os limites de compra e venda são rastreados separadamente?',
+    question: 'Are buy and sell limits tracked separately?',
     answer:
-      'Sim, os limites de compra e venda são rastreados separadamente. Você pode ter limites diferentes para cada tipo de transação.',
+      'Yes, buy and sell limits are tracked separately. You can have different limits for each type of transaction.',
   },
   {
-    question: 'Posso perder meus limites aumentados?',
+    question: 'Can I lose my increased limits?',
     answer:
-      'Não, uma vez que você aumenta seus limites através de verificações, eles são permanentes. No entanto, limites podem ser reduzidos por atividade suspeita ou violações de termos de serviço.',
+      'No, once you increase your limits through verifications, they are permanent. However, limits may be reduced due to suspicious activity or terms of service violations.',
   },
 ]
 
@@ -44,7 +49,7 @@ export function LimitsFAQ() {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-[15px] font-pixel font-bold text-white">FAQs</h2>
         <button className="text-[11px] text-primary hover:text-primary/80 transition-colors">
-          Ver todas
+          View all
         </button>
       </div>
 

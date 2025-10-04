@@ -18,6 +18,7 @@ import { DepositSheet } from '@/components/features/deposit-sheet'
 import { WithdrawModal } from '@/components/features/withdraw-modal'
 import { BuyModal } from '@/components/features/buy-modal'
 import { SellModal } from '@/components/features/sell-modal'
+import { mockWalletBalance } from '@/lib/mock-data'
 
 export default function Home() {
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
@@ -32,7 +33,10 @@ export default function Home() {
 
       <main className="max-w-md mx-auto space-y-5 py-4 px-5">
         {/* Balance Section */}
-        <BalanceCard balance="R$ 0,00" balanceInLocal="≈ $0.00 USD" />
+        <BalanceCard
+          balance={`R$ ${mockWalletBalance.brl.toFixed(2).replace('.', ',')}`}
+          balanceInLocal={`≈ $${mockWalletBalance.usd.toFixed(2)} USD`}
+        />
 
         {/* Action Buttons */}
         <div className="grid grid-cols-4 gap-2.5">

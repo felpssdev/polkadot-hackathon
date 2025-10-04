@@ -55,7 +55,7 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
                 </button>
               </div>
               <p className="text-white/60 text-sm mt-2">
-                Send funds from your P2P.me wallet.
+                Send funds from your PolkaPay wallet.
               </p>
             </div>
 
@@ -74,7 +74,7 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
                     Withdraw Polkadot/DOT
                   </p>
                   <p className="text-white/60 text-sm">
-                    Withdraw DOT from your P2P.me wallet
+                    Withdraw DOT from your PolkaPay wallet
                   </p>
                 </div>
                 <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center">

@@ -15,7 +15,7 @@ const pixelFont = PressStart2P({
 })
 
 export const metadata: Metadata = {
-  title: 'P2P.ME - Polkadot to BRL',
+  title: 'PolkaPay - Polkadot to BRL',
   description: 'Revolutionizing Polkadot payments via PIX',
 }
 

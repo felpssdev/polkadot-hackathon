@@ -1,6 +1,11 @@
 'use client'
 
 import { TrendingUp, TrendingDown, ChevronRight } from 'lucide-react'
+import {
+  mockUserLimits,
+  mockExchangeRate,
+  formatCurrency,
+} from '@/lib/mock-data'
 
 interface TransactionLimit {
   type: 'Buy' | 'Sell/Pay'
@@ -9,8 +14,16 @@ interface TransactionLimit {
 }
 
 const limits: TransactionLimit[] = [
-  { type: 'Buy', amount: 'R$ 0', icon: TrendingUp },
-  { type: 'Sell/Pay', amount: 'R$ 500', icon: TrendingDown },
+  {
+    type: 'Buy',
+    amount: formatCurrency(mockUserLimits.buyLimit * mockExchangeRate, 'BRL'),
+    icon: TrendingUp,
+  },
+  {
+    type: 'Sell/Pay',
+    amount: formatCurrency(mockUserLimits.sellLimit * mockExchangeRate, 'BRL'),
+    icon: TrendingDown,
+  },
 ]
 
 export function TransactionLimits() {
@@ -41,7 +54,7 @@ export function TransactionLimits() {
                 {limit.type}
               </span>
             </div>
-            <p className="text-lg font-pixel font-bold text-primary tracking-tight">
+            <p className="text-sm font-pixel font-bold text-primary tracking-tight">
               {limit.amount}
             </p>
           </div>

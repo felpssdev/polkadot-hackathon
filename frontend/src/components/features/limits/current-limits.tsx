@@ -1,12 +1,17 @@
 'use client'
 
 import { TrendingUp, TrendingDown } from 'lucide-react'
+import {
+  mockUserLimits,
+  mockExchangeRate,
+  formatCurrency,
+} from '@/lib/mock-data'
 
 export function CurrentLimits() {
   return (
     <div className="relative rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 p-5 space-y-4 border-2 border-primary/30 scanlines">
       <h2 className="text-center text-[13px] font-pixel font-bold text-white mb-4">
-        Limites por Transação
+        Transaction Limits
       </h2>
 
       <div className="grid grid-cols-2 gap-4">
@@ -16,9 +21,11 @@ export function CurrentLimits() {
             <TrendingUp className="h-6 w-6 text-primary" strokeWidth={2.5} />
           </div>
           <span className="text-[9px] font-pixel text-muted-foreground mb-2">
-            COMPRAR
+            BUY
           </span>
-          <p className="text-lg font-pixel font-bold text-primary">R$ 0</p>
+          <p className="text-xs font-pixel font-bold text-primary">
+            {formatCurrency(mockUserLimits.buyLimit * mockExchangeRate, 'BRL')}
+          </p>
         </div>
 
         {/* Sell/Pay Limit */}
@@ -30,9 +37,11 @@ export function CurrentLimits() {
             />
           </div>
           <span className="text-[9px] font-pixel text-muted-foreground mb-2">
-            VENDER/PAGAR
+            SELL/PAY
           </span>
-          <p className="text-lg font-pixel font-bold text-secondary">R$ 500</p>
+          <p className="text-xs font-pixel font-bold text-secondary">
+            {formatCurrency(mockUserLimits.sellLimit * mockExchangeRate, 'BRL')}
+          </p>
         </div>
       </div>
     </div>

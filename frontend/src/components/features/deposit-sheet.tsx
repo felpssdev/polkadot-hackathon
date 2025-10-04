@@ -45,7 +45,7 @@ export function DepositSheet({ isOpen, onClose }: DepositSheetProps) {
                 </button>
               </div>
               <p className="text-white/60 text-sm mt-2">
-                Receive funds to your P2P.me wallet.
+                Receive funds to your PolkaPay wallet.
               </p>
             </div>
 
@@ -64,7 +64,7 @@ export function DepositSheet({ isOpen, onClose }: DepositSheetProps) {
                     Deposit Polkadot/DOT
                   </p>
                   <p className="text-white/60 text-sm">
-                    Deposit DOT to your P2P.me wallet
+                    Deposit DOT to your PolkaPay wallet
                   </p>
                 </div>
                 <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center">

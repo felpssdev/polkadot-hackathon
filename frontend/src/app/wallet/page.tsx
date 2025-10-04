@@ -111,7 +111,7 @@ export default function WalletLoginPage() {
         {/* Title */}
         <div className="text-center py-4">
           <h1 className="text-2xl font-pixel font-bold text-white mb-2">
-            Access P2P.ME
+            Access PolkaPay
           </h1>
           <p className="text-muted-foreground text-sm">
             {isConnected

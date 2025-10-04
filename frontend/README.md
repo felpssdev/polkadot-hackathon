@@ -1,4 +1,4 @@
-# P2P.ME - 8bit Wallet Frontend
+# PolkaPay - 8bit Wallet Frontend
 
 Interface 8-bit para o hackathon Latin Hack com Polkadot.
 

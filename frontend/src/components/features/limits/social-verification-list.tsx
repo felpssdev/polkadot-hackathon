@@ -1,6 +1,11 @@
 'use client'
 
 import { FaXTwitter, FaFacebook, FaLinkedin, FaGithub } from 'react-icons/fa6'
+import {
+  mockUserLimits,
+  mockExchangeRate,
+  formatCurrency,
+} from '@/lib/mock-data'
 
 interface SocialNetwork {
   id: string
@@ -16,28 +21,28 @@ const socialNetworks: SocialNetwork[] = [
     id: 'twitter',
     name: 'X',
     icon: FaXTwitter,
-    limit: 'R$ 50',
+    limit: formatCurrency(50 * mockExchangeRate, 'BRL'),
     reward: '+0.5 USDC',
   },
   {
     id: 'facebook',
     name: 'Facebook',
     icon: FaFacebook,
-    limit: 'R$ 50',
+    limit: formatCurrency(50 * mockExchangeRate, 'BRL'),
     reward: '+0.5 USDC',
   },
   {
     id: 'linkedin',
     name: 'LinkedIn',
     icon: FaLinkedin,
-    limit: 'R$ 100',
+    limit: formatCurrency(mockUserLimits.buyLimit * mockExchangeRate, 'BRL'),
     reward: '+2 USDC',
   },
   {
     id: 'github',
     name: 'GitHub',
     icon: FaGithub,
-    limit: 'R$ 100',
+    limit: formatCurrency(mockUserLimits.buyLimit * mockExchangeRate, 'BRL'),
     reward: '+2 USDC',
   },
 ]
@@ -60,7 +65,7 @@ export function SocialVerificationList() {
                   {social.name}
                 </h4>
                 <p className="text-[10px] text-muted-foreground">
-                  {social.reward} Recompensa
+                  {social.reward} Reward
                 </p>
               </div>
             </div>
@@ -69,12 +74,12 @@ export function SocialVerificationList() {
               <p className="text-[16px] font-pixel font-bold text-primary mb-1">
                 {social.limit}
               </p>
-              <span className="text-[9px] text-muted-foreground">Limite</span>
+              <span className="text-[9px] text-muted-foreground">Limit</span>
             </div>
           </div>
 
           <button className="w-full mt-3 py-2 rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10 border-2 border-primary/30 text-[10px] font-pixel font-bold text-white hover:from-primary/15 hover:to-secondary/15 active:scale-[0.98] transition-all">
-            Verificar Agora
+            Verify Now
           </button>
         </div>
       ))}

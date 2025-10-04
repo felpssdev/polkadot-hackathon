@@ -11,7 +11,17 @@ import {
   Clock,
   Wallet,
   LogOut,
+  CheckCircle,
+  AlertCircle,
+  ArrowUpRight,
+  ArrowDownLeft,
 } from 'lucide-react'
+import {
+  mockWalletBalance,
+  mockTransactions,
+  formatCurrency,
+  formatTransactionDate,
+} from '@/lib/mock-data'
 
 interface WalletModalProps {
   isOpen: boolean
@@ -23,6 +33,25 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
   const handleCopyAddress = () => {
     navigator.clipboard.writeText(walletAddress)
+  }
+
+  const getTransactionIcon = (type: string, status: string) => {
+    if (status === 'failed')
+      return <AlertCircle className="w-4 h-4 text-red-400" />
+    if (status === 'pending')
+      return <Clock className="w-4 h-4 text-yellow-400" />
+
+    switch (type) {
+      case 'buy':
+      case 'deposit':
+        return <ArrowDownLeft className="w-4 h-4 text-green-400" />
+      case 'sell':
+      case 'withdraw':
+      case 'transfer':
+        return <ArrowUpRight className="w-4 h-4 text-blue-400" />
+      default:
+        return <CheckCircle className="w-4 h-4 text-gray-400" />
+    }
   }
 
   if (!isOpen) return null
@@ -113,10 +142,59 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
                 <p className="text-white font-pixel text-sm font-bold">
                   Polkadot
                 </p>
-                <p className="text-white/60 text-xs font-pixel">0 DOT</p>
+                <p className="text-white/60 text-xs font-pixel">
+                  {mockWalletBalance.dot} DOT
+                </p>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-white/40" />
+          </div>
+        </div>
+
+        {/* Recent Transactions */}
+        <div className="px-6 pb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-white font-pixel text-sm font-bold">
+              Recent Transactions
+            </h3>
+            <span className="text-white/40 text-xs font-pixel">
+              {mockTransactions.length} total
+            </span>
+          </div>
+          <div className="space-y-2 max-h-32 overflow-y-auto">
+            {mockTransactions.slice(0, 3).map((tx) => (
+              <div
+                key={tx.id}
+                className="flex items-center gap-3 p-2 bg-white/5 rounded-lg"
+              >
+                {getTransactionIcon(tx.type, tx.status)}
+                <div className="flex-1 min-w-0">
+                  <p className="text-white text-xs font-pixel truncate">
+                    {tx.description}
+                  </p>
+                  <p className="text-white/40 text-[10px] font-pixel">
+                    {formatTransactionDate(tx.timestamp)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-white text-xs font-pixel">
+                    {tx.type === 'buy' || tx.type === 'deposit' ? '+' : '-'}
+                    {formatCurrency(tx.amount, tx.currency)}
+                  </p>
+                  <p
+                    className={`text-[10px] font-pixel ${
+                      tx.status === 'completed'
+                        ? 'text-green-400'
+                        : tx.status === 'pending'
+                          ? 'text-yellow-400'
+                          : 'text-red-400'
+                    }`}
+                  >
+                    {tx.status}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -124,7 +202,9 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
         <div className="px-6 pb-4 space-y-1">
           <button className="w-full flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition-colors">
             <Menu className="w-5 h-5 text-white/60" />
-            <span className="text-white font-pixel text-sm">Transactions</span>
+            <span className="text-white font-pixel text-sm">
+              All Transactions
+            </span>
           </button>
           <button className="w-full flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition-colors">
             <Clock className="w-5 h-5 text-white/60" />
