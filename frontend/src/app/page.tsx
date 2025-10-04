@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import {
   Wallet,
   ArrowDownToLine,
@@ -12,8 +13,13 @@ import { ActionButton } from '@/components/features/action-button'
 import { QuickTour } from '@/components/features/quick-tour'
 import { TransactionLimits } from '@/components/features/transaction-limits'
 import { BottomNavigation } from '@/components/features/bottom-navigation'
+import { WalletModal } from '@/components/features/wallet-modal'
+import { DepositSheet } from '@/components/features/deposit-sheet'
 
 export default function Home() {
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
+  const [isDepositSheetOpen, setIsDepositSheetOpen] = useState(false)
+
   return (
     <div className="min-h-screen bg-background pb-28">
       <Header />
@@ -27,12 +33,12 @@ export default function Home() {
           <ActionButton
             icon={Wallet}
             label="Carteira"
-            onClick={() => console.log('Wallet clicked')}
+            onClick={() => setIsWalletModalOpen(true)}
           />
           <ActionButton
             icon={ArrowDownToLine}
             label="Depositar"
-            onClick={() => console.log('Deposit clicked')}
+            onClick={() => setIsDepositSheetOpen(true)}
           />
           <ActionButton
             icon={ArrowUpFromLine}
@@ -62,6 +68,18 @@ export default function Home() {
 
       {/* Bottom Navigation */}
       <BottomNavigation />
+
+      {/* Wallet Modal */}
+      <WalletModal
+        isOpen={isWalletModalOpen}
+        onClose={() => setIsWalletModalOpen(false)}
+      />
+
+      {/* Deposit Sheet */}
+      <DepositSheet
+        isOpen={isDepositSheetOpen}
+        onClose={() => setIsDepositSheetOpen(false)}
+      />
     </div>
   )
 }

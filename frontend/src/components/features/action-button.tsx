@@ -26,8 +26,8 @@ export function ActionButton({
       )}
       onClick={onClick}
     >
-      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors border border-primary/20">
-        <Icon className="h-5 w-5 text-primary" strokeWidth={2.5} />
+      <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors border border-primary/20">
+        <Icon className="size-8 text-primary" strokeWidth={2.5} />
       </div>
       <span className="text-[7px] font-pixel text-muted-foreground group-hover:text-foreground transition-colors">
         {label}
