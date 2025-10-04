@@ -15,10 +15,12 @@ import { TransactionLimits } from '@/components/features/transaction-limits'
 import { BottomNavigation } from '@/components/features/bottom-navigation'
 import { WalletModal } from '@/components/features/wallet-modal'
 import { DepositSheet } from '@/components/features/deposit-sheet'
+import { WithdrawModal } from '@/components/features/withdraw-modal'
 
 export default function Home() {
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const [isDepositSheetOpen, setIsDepositSheetOpen] = useState(false)
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false)
 
   return (
     <div className="min-h-screen bg-background pb-28">
@@ -43,7 +45,7 @@ export default function Home() {
           <ActionButton
             icon={ArrowUpFromLine}
             label="Sacar"
-            onClick={() => console.log('Withdraw clicked')}
+            onClick={() => setIsWithdrawModalOpen(true)}
           />
           <ActionButton
             icon={Headphones}
@@ -79,6 +81,12 @@ export default function Home() {
       <DepositSheet
         isOpen={isDepositSheetOpen}
         onClose={() => setIsDepositSheetOpen(false)}
+      />
+
+      {/* Withdraw Modal */}
+      <WithdrawModal
+        isOpen={isWithdrawModalOpen}
+        onClose={() => setIsWithdrawModalOpen(false)}
       />
     </div>
   )
