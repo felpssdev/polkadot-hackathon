@@ -1,42 +1,42 @@
-import type React from "react";
-import { forwardRef } from "react";
+import type React from 'react'
+import { forwardRef } from 'react'
 
-import * as AvatarPrimitive from "@radix-ui/react-avatar";
-import { cva } from "class-variance-authority";
+import * as AvatarPrimitive from '@radix-ui/react-avatar'
+import { cva } from 'class-variance-authority'
 
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils'
 
-import "./styles/retro.css";
+import './styles/retro.css'
 
-export const avatarVariants = cva("", {
+export const avatarVariants = cva('', {
   variants: {
     font: {
-      normal: "",
-      retro: "retro",
+      normal: '',
+      retro: 'retro',
     },
     variant: {
-      default: "",
-      retro: "",
-      pixel: "",
+      default: '',
+      retro: '',
+      pixel: '',
     },
   },
   defaultVariants: {
-    font: "retro",
-    variant: "pixel",
+    font: 'retro',
+    variant: 'pixel',
   },
-});
+})
 
 const Avatar = forwardRef<
   React.ComponentRef<typeof AvatarPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root> & {
-    font?: "normal" | "retro";
-    variant?: "default" | "retro" | "pixel";
+    font?: 'normal' | 'retro'
+    variant?: 'default' | 'retro' | 'pixel'
   }
->(({ className = "", font, variant = "pixel", ...props }, ref) => {
-  const isPixel = variant === "pixel";
+>(({ className = '', font, variant = 'pixel', ...props }, ref) => {
+  const isPixel = variant === 'pixel'
 
   return (
-    <div className={cn("relative size-max", className)}>
+    <div className={cn('relative size-max', className)}>
       {/* Pixel frame (only show if pixel variant) */}
       {isPixel && (
         <div
@@ -96,12 +96,12 @@ const Avatar = forwardRef<
         ref={ref}
         data-slot="avatar"
         className={cn(
-          "relative flex size-10 shrink-0 overflow-hidden text-xs",
-          !isPixel && "rounded-none",
-          isPixel && "rounded-full",
-          font !== "normal" && "retro",
-          variant === "retro" && "image-rendering-pixelated",
-          className
+          'relative flex size-10 shrink-0 overflow-hidden text-xs',
+          !isPixel && 'rounded-none',
+          isPixel && 'rounded-full',
+          font !== 'normal' && 'retro',
+          variant === 'retro' && 'image-rendering-pixelated',
+          className,
         )}
         {...props}
       />
@@ -118,14 +118,14 @@ const Avatar = forwardRef<
         </>
       )}
     </div>
-  );
-});
-Avatar.displayName = AvatarPrimitive.Root.displayName;
+  )
+})
+Avatar.displayName = AvatarPrimitive.Root.displayName
 
 interface BitAvatarImageProps
   extends React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image> {
-  font?: "normal" | "retro";
-  variant?: "default" | "retro" | "pixel";
+  font?: 'normal' | 'retro'
+  variant?: 'default' | 'retro' | 'pixel'
 }
 
 const AvatarImage = forwardRef<
@@ -137,15 +137,15 @@ const AvatarImage = forwardRef<
       ref={ref}
       data-slot="avatar-image"
       className={cn(
-        "aspect-square h-full w-full",
-        font === "retro" && "retro",
-        className
+        'aspect-square h-full w-full',
+        font === 'retro' && 'retro',
+        className,
       )}
       {...props}
     />
-  );
-});
-AvatarImage.displayName = AvatarPrimitive.Image.displayName;
+  )
+})
+AvatarImage.displayName = AvatarPrimitive.Image.displayName
 
 const AvatarFallback = forwardRef<
   React.ComponentRef<typeof AvatarPrimitive.Fallback>,
@@ -155,12 +155,12 @@ const AvatarFallback = forwardRef<
     ref={ref}
     data-slot="avatar-fallback"
     className={cn(
-      "flex h-full w-full items-center justify-center rounded-full bg-muted text-foreground",
-      className
+      'flex h-full w-full items-center justify-center rounded-full bg-muted text-foreground',
+      className,
     )}
     {...props}
   />
-));
-AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
+))
+AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName
 
-export { Avatar, AvatarImage, AvatarFallback };
+export { Avatar, AvatarImage, AvatarFallback }
