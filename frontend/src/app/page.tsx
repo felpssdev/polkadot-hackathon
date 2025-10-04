@@ -17,12 +17,14 @@ import { WalletModal } from '@/components/features/wallet-modal'
 import { DepositSheet } from '@/components/features/deposit-sheet'
 import { WithdrawModal } from '@/components/features/withdraw-modal'
 import { BuyModal } from '@/components/features/buy-modal'
+import { SellModal } from '@/components/features/sell-modal'
 
 export default function Home() {
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const [isDepositSheetOpen, setIsDepositSheetOpen] = useState(false)
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false)
   const [isBuyModalOpen, setIsBuyModalOpen] = useState(false)
+  const [isSellModalOpen, setIsSellModalOpen] = useState(false)
 
   return (
     <div className="min-h-screen bg-background pb-28">
@@ -71,7 +73,10 @@ export default function Home() {
       </main>
 
       {/* Bottom Navigation */}
-      <BottomNavigation onBuyClick={() => setIsBuyModalOpen(true)} />
+      <BottomNavigation
+        onBuyClick={() => setIsBuyModalOpen(true)}
+        onSellClick={() => setIsSellModalOpen(true)}
+      />
 
       {/* Wallet Modal */}
       <WalletModal
@@ -95,6 +100,12 @@ export default function Home() {
       <BuyModal
         isOpen={isBuyModalOpen}
         onClose={() => setIsBuyModalOpen(false)}
+      />
+
+      {/* Sell Modal */}
+      <SellModal
+        isOpen={isSellModalOpen}
+        onClose={() => setIsSellModalOpen(false)}
       />
     </div>
   )

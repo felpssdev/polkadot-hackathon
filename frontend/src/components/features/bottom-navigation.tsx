@@ -4,9 +4,13 @@ import { ArrowDownToLine, ArrowUpFromLine, ScanLine } from 'lucide-react'
 
 interface BottomNavigationProps {
   onBuyClick?: () => void
+  onSellClick?: () => void
 }
 
-export function BottomNavigation({ onBuyClick }: BottomNavigationProps) {
+export function BottomNavigation({
+  onBuyClick,
+  onSellClick,
+}: BottomNavigationProps) {
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-2xl border-t-2 border-primary/20 px-5 py-4 safe-area-inset-bottom">
       <div className="flex items-center justify-between max-w-md mx-auto gap-3">
@@ -22,7 +26,10 @@ export function BottomNavigation({ onBuyClick }: BottomNavigationProps) {
           <ScanLine className="h-6 w-6 text-primary" strokeWidth={2.5} />
         </button>
 
-        <button className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-white text-black text-[11px] font-pixel font-bold hover:bg-white/90 transition-all shadow-lg border-2 border-white/30 btn-8bit">
+        <button
+          onClick={onSellClick}
+          className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-white text-black text-[11px] font-pixel font-bold hover:bg-white/90 transition-all shadow-lg border-2 border-white/30 btn-8bit"
+        >
           <ArrowUpFromLine className="h-[16px] w-[16px]" strokeWidth={3} />
           Vender
         </button>

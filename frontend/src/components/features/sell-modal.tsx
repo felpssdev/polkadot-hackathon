@@ -7,20 +7,20 @@ import {
   HelpCircle,
   FileText,
   ChevronRight,
-  Plus,
+  Minus,
 } from 'lucide-react'
 
-interface BuyModalProps {
+interface SellModalProps {
   isOpen: boolean
   onClose: () => void
 }
 
-export function BuyModal({ isOpen, onClose }: BuyModalProps) {
+export function SellModal({ isOpen, onClose }: SellModalProps) {
   const [amount, setAmount] = useState('')
   const [showKeyboard, setShowKeyboard] = useState(false)
 
   // Mock data
-  const transactionLimit = 100 // USDC
+  const transactionLimit = 100 // DOT
   const currentPrice = 5.33 // BRL per DOT
 
   const handleNumberPress = (number: string) => {
@@ -72,13 +72,13 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
       {/* Modal */}
       <div className="relative w-full max-w-md bg-card rounded-2xl border-2 border-white/10 shadow-2xl max-h-[85vh] overflow-hidden">
         {!showKeyboard ? (
-          /* Buy Options */
+          /* Sell Options */
           <>
             {/* Header */}
             <div className="px-6 pt-6 pb-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-pixel font-bold text-white">
-                  Buy DOT
+                  Sell DOT
                 </h2>
                 <button
                   onClick={onClose}
@@ -88,24 +88,24 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
                 </button>
               </div>
               <p className="text-white/60 text-sm mt-2">
-                Purchase Polkadot tokens with BRL.
+                Sell Polkadot tokens for BRL.
               </p>
             </div>
 
-            {/* Buy Options */}
+            {/* Sell Options */}
             <div className="px-6 pb-6">
-              {/* DOT Purchase Option */}
+              {/* DOT Sell Option */}
               <button
                 onClick={() => setShowKeyboard(true)}
                 className="w-full flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors"
               >
                 <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
-                  <Plus className="w-6 h-6 text-primary" />
+                  <Minus className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="text-white font-pixel font-bold">Comprar DOT</p>
+                  <p className="text-white font-pixel font-bold">Vender DOT</p>
                   <p className="text-white/60 text-sm">
-                    Buy DOT with Brazilian Real
+                    Sell DOT for Brazilian Real
                   </p>
                 </div>
                 <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center">
@@ -127,7 +127,7 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
                   <ArrowLeft className="w-5 h-5 text-white/60" />
                 </button>
                 <h2 className="text-lg font-pixel font-bold text-white">
-                  Buy DOT
+                  Sell DOT
                 </h2>
                 <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
                   <HelpCircle className="w-5 h-5 text-white/60" />
