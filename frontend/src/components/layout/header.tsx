@@ -1,8 +1,23 @@
 'use client'
 
-import { Menu, Download } from 'lucide-react'
+import { Menu, Download, LogOut } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export function Header() {
+  const router = useRouter()
+
+  const handleDisconnect = () => {
+    // Clear wallet connection data
+    localStorage.removeItem('walletConnected')
+    localStorage.removeItem('userEmail')
+    localStorage.removeItem('walletAddress')
+    localStorage.removeItem('selectedCurrency')
+    localStorage.removeItem('selectedLanguage')
+
+    // Redirect to wallet login
+    router.push('/wallet')
+  }
+
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-3.5 bg-background/90 backdrop-blur-xl border-b-2 border-primary/20">
       <div className="flex items-center gap-3">
@@ -20,9 +35,18 @@ export function Header() {
           </h1>
         </div>
       </div>
-      <button className="w-9 h-9 rounded-lg bg-white/5 border-2 border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all">
-        <Download className="h-4 w-4 text-white/90" strokeWidth={2.5} />
-      </button>
+      <div className="flex items-center gap-2">
+        <button className="w-9 h-9 rounded-lg bg-white/5 border-2 border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all">
+          <Download className="h-4 w-4 text-white/90" strokeWidth={2.5} />
+        </button>
+        <button
+          onClick={handleDisconnect}
+          className="w-9 h-9 rounded-lg bg-white/5 border-2 border-white/10 flex items-center justify-center hover:bg-red-500/20 hover:border-red-500/30 active:scale-95 transition-all"
+          title="Disconnect Wallet"
+        >
+          <LogOut className="h-4 w-4 text-white/90" strokeWidth={2.5} />
+        </button>
+      </div>
     </header>
   )
 }
