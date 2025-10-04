@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter, Press_Start_2P as PressStart2P } from 'next/font/google'
 import './globals.css'
 import { WalletAuth } from '@/components/auth/wallet-auth'
+import { WalletProvider } from '@/contexts/WalletContext'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -29,7 +30,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${pixelFont.variable} font-sans antialiased`}
       >
-        <WalletAuth>{children}</WalletAuth>
+        <WalletProvider>
+          <WalletAuth>{children}</WalletAuth>
+        </WalletProvider>
       </body>
     </html>
   )

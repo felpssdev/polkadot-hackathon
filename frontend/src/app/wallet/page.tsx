@@ -5,223 +5,222 @@ import { useRouter } from 'next/navigation'
 import {
   Wallet,
   Loader2,
-  Mail,
   ChevronDown,
   Globe,
   DollarSign,
+  AlertCircle,
+  CheckCircle2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useWallet } from '@/contexts/WalletContext'
+import { getWalletIcon, getWalletDisplayName } from '@/lib/polkadot'
 
 export default function WalletLoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState('')
+  const {
+    connect,
+    disconnect,
+    isConnected,
+    isConnecting,
+    selectedAccount,
+    accounts,
+    selectAccount,
+    installedWallets,
+    error: walletError,
+  } = useWallet()
+
   const [selectedCurrency, setSelectedCurrency] = useState('BRL')
   const [selectedLanguage, setSelectedLanguage] = useState('English')
-  const [isConnecting, setIsConnecting] = useState(false)
-  const [isConnected, setIsConnected] = useState(false)
-  const [walletAddress, setWalletAddress] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [isEmailValid, setIsEmailValid] = useState(false)
-  const [isWalletSelected, setIsWalletSelected] = useState(false)
+  const [showAccountSelector, setShowAccountSelector] = useState(false)
 
   const currencies = ['BRL']
   const languages = ['English', 'Português', 'Español']
 
-  // Check if Polkadot.js extension is available
-  // const isPolkadotJsAvailable =
-  //   typeof window !== 'undefined' && (window as any).injectedWeb3
+  // Show wallet error
+  useEffect(() => {
+    if (walletError) {
+      setError(walletError)
+    }
+  }, [walletError])
 
-  // Simulate Polkadot wallet connection
+  // Handle wallet connection
   const handleConnectWallet = async () => {
-    if (!email) {
-      setError('Please enter your email')
-      return
-    }
-
-    if (!email.includes('@')) {
-      setError('Please enter a valid email')
-      return
-    }
-
-    setIsConnecting(true)
     setError(null)
 
-    try {
-      // Simulate wallet connection delay
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+    // Connect wallet
+    const success = await connect()
 
-      // Generate a mock wallet address for demo
-      const mockAddress = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY'
-      setWalletAddress(mockAddress)
-
-      setIsConnecting(false)
-      setIsConnected(true)
-
-      // Store connection state in localStorage
-      localStorage.setItem('walletConnected', 'true')
-      localStorage.setItem('userEmail', email)
-      localStorage.setItem('walletAddress', mockAddress)
+    if (success) {
+      // Store preferences
       localStorage.setItem('selectedCurrency', selectedCurrency)
       localStorage.setItem('selectedLanguage', selectedLanguage)
 
-      // Redirect to main app after successful connection
-      setTimeout(() => {
-        router.push('/')
-      }, 1000)
-    } catch {
-      setError('Error connecting wallet. Please try again.')
-      setIsConnecting(false)
+      // If multiple accounts, show selector
+      if (accounts.length > 1) {
+        setShowAccountSelector(true)
+      } else {
+        // Redirect to main app
+        setTimeout(() => {
+          router.push('/')
+        }, 1000)
+      }
     }
   }
 
-  // Email validation function
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
-  }
-
-  // Real-time email validation
-  useEffect(() => {
-    setIsEmailValid(validateEmail(email))
-    if (error && email && validateEmail(email)) {
-      setError(null)
-    }
-  }, [email, error])
-
-  // Handle wallet selection
-  const handleWalletSelection = () => {
-    if (isConnecting || isConnected) return
-
-    setIsWalletSelected(!isWalletSelected)
-    setError(null)
+  // Handle account selection
+  const handleAccountSelect = (account: typeof accounts[0]) => {
+    selectAccount(account)
+    setShowAccountSelector(false)
+    
+    // Redirect to main app
+    setTimeout(() => {
+      router.push('/')
+    }, 500)
   }
 
   // Check if user is already connected on page load
   useEffect(() => {
-    const isAlreadyConnected = localStorage.getItem('walletConnected')
-    if (isAlreadyConnected === 'true') {
-      // User is already connected, redirect to main app
+    if (isConnected && !isConnecting && !showAccountSelector) {
       router.push('/')
     }
-  }, [router])
+  }, [isConnected, isConnecting, showAccountSelector, router])
+
+  // Check for installed wallets
+  const hasWalletExtension = installedWallets.some(w => w.installed)
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <main className="max-w-md w-full space-y-5 py-4 px-5">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <main className="max-w-md w-full space-y-6">
         {/* Title */}
         <div className="text-center py-4">
-          <h1 className="text-2xl font-pixel font-bold text-white mb-2">
-            Access PolkaPay
+          <h1 className="text-3xl font-pixel font-bold text-white mb-3">
+            Access DOT2PIX
           </h1>
           <p className="text-muted-foreground text-sm">
-            {isConnected
-              ? 'Connection successful!'
+            {isConnected && selectedAccount
+              ? 'Wallet connected successfully!'
               : 'Connect your Polkadot wallet to get started'}
           </p>
         </div>
 
-        {/* Email Input */}
-        <div className="space-y-2">
-          <label className="text-sm font-pixel font-bold text-white">
-            Email
-          </label>
-          <div className="relative">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-              className={`w-full p-4 pl-12 rounded-xl bg-white/[0.03] border-2 text-white placeholder:text-muted-foreground focus:outline-none transition-all ${
-                email && !isEmailValid
-                  ? 'border-red-500/50 focus:border-red-500/70'
-                  : email && isEmailValid
-                    ? 'border-green-500/50 focus:border-green-500/70'
-                    : 'border-white/[0.08] focus:border-primary/50'
-              }`}
-              disabled={isConnecting || isConnected}
-            />
-            <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            {email && (
-              <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                {isEmailValid ? (
-                  <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                  </div>
-                ) : (
-                  <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                  </div>
-                )}
+        {/* No Wallet Warning */}
+        {!hasWalletExtension && (
+          <div className="p-4 bg-yellow-500/10 border-2 border-yellow-500/30 rounded-xl">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
+              <div className="space-y-2">
+                <p className="text-yellow-500 text-sm font-pixel font-bold">
+                  No Wallet Detected
+                </p>
+                <p className="text-yellow-500/80 text-xs">
+                  Please install a Polkadot wallet extension:
+                </p>
+                <ul className="space-y-1 text-xs text-yellow-500/80">
+                  <li>• <a href="https://subwallet.app/" target="_blank" rel="noopener noreferrer" className="underline hover:text-yellow-500">SubWallet</a> (Recommended)</li>
+                  <li>• <a href="https://polkadot.js.org/extension/" target="_blank" rel="noopener noreferrer" className="underline hover:text-yellow-500">Polkadot.js</a></li>
+                  <li>• <a href="https://talisman.xyz/" target="_blank" rel="noopener noreferrer" className="underline hover:text-yellow-500">Talisman</a></li>
+                </ul>
               </div>
-            )}
+            </div>
           </div>
-          {email && !isEmailValid && (
-            <p className="text-red-400 text-xs font-pixel">
-              Please enter a valid email
-            </p>
-          )}
-        </div>
+        )}
 
-        {/* Wallet Selection */}
+        {/* Account Selector Modal */}
+        {showAccountSelector && accounts.length > 1 && (
+          <div className="p-4 bg-white/[0.03] border-2 border-primary/30 rounded-xl space-y-3">
+            <h3 className="text-sm font-pixel font-bold text-white">
+              Select Account
+            </h3>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {accounts.map((account) => (
+                <button
+                  key={account.address}
+                  onClick={() => handleAccountSelect(account)}
+                  className="w-full p-3 bg-white/[0.03] border border-white/10 rounded-lg hover:bg-white/[0.06] hover:border-primary/30 transition-all text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center text-lg">
+                      {getWalletIcon(account.meta.source || '')}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-white font-medium text-sm truncate">
+                        {account.meta.name || 'Account'}
+                      </div>
+                      <div className="text-muted-foreground text-xs truncate">
+                        {account.address.slice(0, 10)}...{account.address.slice(-8)}
+                      </div>
+                      <div className="text-primary text-xs">
+                        {getWalletDisplayName(account.meta.source || '')}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Wallet Connection Box */}
         <div className="space-y-3">
           <h2 className="text-sm font-pixel font-bold text-white">
             Polkadot Wallet
           </h2>
           <button
-            onClick={handleWalletSelection}
-            className={`w-full p-4 rounded-xl border-2 transition-all duration-200 group ${
-              isConnected
-                ? 'bg-primary/20 border-primary text-primary shadow-lg shadow-primary/30'
-                : isWalletSelected
-                  ? 'bg-green-500/10 border-green-500/50 hover:bg-green-500/15'
-                  : 'bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06] hover:border-primary/30 active:scale-[0.98]'
+            onClick={handleConnectWallet}
+            disabled={isConnecting || isConnected || !hasWalletExtension}
+            className={`w-full p-5 rounded-xl border-2 transition-all duration-200 text-left ${
+              isConnected && selectedAccount
+                ? 'bg-primary/20 border-primary text-primary shadow-lg shadow-primary/30 cursor-default'
+                : hasWalletExtension
+                  ? 'bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06] hover:border-primary/30 active:scale-[0.98] cursor-pointer'
+                  : 'bg-white/[0.03] border-white/[0.08] opacity-50 cursor-not-allowed'
             }`}
-            disabled={isConnecting || isConnected}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <div
-                className={`w-10 h-10 rounded-lg flex items-center justify-center border transition-all ${
+                className={`w-12 h-12 rounded-lg flex items-center justify-center border transition-all ${
                   isConnected
                     ? 'bg-primary/20 border-primary/40'
-                    : isWalletSelected
-                      ? 'bg-green-500/20 border-green-500/40'
-                      : 'bg-primary/10 border-primary/20 group-hover:bg-primary/15'
+                    : 'bg-primary/10 border-primary/20'
                 }`}
               >
-                <Wallet
-                  className={`h-5 w-5 transition-colors ${
-                    isConnected
-                      ? 'text-primary'
-                      : isWalletSelected
-                        ? 'text-green-500'
-                        : 'text-primary'
-                  }`}
-                  strokeWidth={2.5}
-                />
+                {isConnected && selectedAccount ? (
+                  <span className="text-2xl">
+                    {getWalletIcon(selectedAccount.meta.source || '')}
+                  </span>
+                ) : isConnecting ? (
+                  <Loader2 className="h-6 w-6 text-primary animate-spin" strokeWidth={2.5} />
+                ) : (
+                  <Wallet className="h-6 w-6 text-primary" strokeWidth={2.5} />
+                )}
               </div>
               <div className="flex-1 text-left">
-                <div className="text-white font-medium">Polkadot.js</div>
-                <div className="text-muted-foreground text-xs">
-                  {isConnected && walletAddress
-                    ? `Connected: ${walletAddress.slice(0, 10)}...`
-                    : isWalletSelected
-                      ? 'Wallet selected - Ready to connect'
-                      : 'Click to select wallet'}
+                <div className="text-white font-medium text-base mb-1">
+                  {isConnected && selectedAccount
+                    ? selectedAccount.meta.name || 'Connected'
+                    : isConnecting
+                      ? 'Connecting...'
+                      : 'Polkadot Wallet'}
+                </div>
+                <div className="text-muted-foreground text-sm">
+                  {isConnected && selectedAccount
+                    ? `${selectedAccount.address.slice(0, 10)}...${selectedAccount.address.slice(-8)}`
+                    : isConnecting
+                      ? 'Please check your wallet extension'
+                      : hasWalletExtension
+                        ? 'Click to connect your wallet'
+                        : 'No wallet extension detected'}
                 </div>
               </div>
               {isConnected && (
-                <div className="w-4 h-4 bg-primary rounded-full pixel-blink"></div>
-              )}
-              {isWalletSelected && !isConnected && (
-                <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                </div>
+                <div className="w-3 h-3 bg-primary rounded-full pixel-blink"></div>
               )}
             </div>
           </button>
         </div>
 
-        {/* Currency and Language Selection */}
+        {/* Settings */}
         <div className="space-y-3">
           <h2 className="text-sm font-pixel font-bold text-white">Settings</h2>
           <div className="grid grid-cols-2 gap-3">
@@ -289,7 +288,7 @@ export default function WalletLoginPage() {
         )}
 
         {/* Terms */}
-        <div className="text-center py-4">
+        <div className="text-center py-2">
           <p className="text-muted-foreground text-xs">
             By connecting your wallet, you agree to our{' '}
             <a
@@ -301,31 +300,43 @@ export default function WalletLoginPage() {
           </p>
         </div>
 
-        {/* Connect Button */}
-        <Button
-          onClick={handleConnectWallet}
-          disabled={
-            !isEmailValid || !isWalletSelected || isConnecting || isConnected
-          }
-          className="w-full h-12 bg-white text-black font-pixel font-bold text-xs rounded-xl shadow-lg hover:bg-white/90 disabled:bg-gray-400 disabled:text-gray-600 disabled:cursor-not-allowed transition-all duration-200 btn-8bit border-2 border-white/30"
-        >
-          {isConnecting ? (
-            <div className="flex items-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Connecting...
-            </div>
-          ) : isConnected ? (
-            'Connected! Redirecting...'
-          ) : !email ? (
-            'Enter your email'
-          ) : !isEmailValid ? (
-            'Invalid email'
-          ) : !isWalletSelected ? (
-            'Select wallet'
-          ) : (
-            'Connect Polkadot Wallet'
-          )}
-        </Button>
+        {/* Connect Button - Fallback */}
+        {!isConnected && (
+          <Button
+            onClick={handleConnectWallet}
+            disabled={isConnecting || !hasWalletExtension}
+            className="w-full h-14 bg-white text-black font-pixel font-bold text-sm rounded-xl shadow-lg hover:bg-white/90 disabled:bg-gray-400 disabled:text-gray-600 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98]"
+          >
+            {isConnecting ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Connecting Wallet...
+              </div>
+            ) : !hasWalletExtension ? (
+              'Install Wallet Extension'
+            ) : (
+              'Connect Polkadot Wallet'
+            )}
+          </Button>
+        )}
+        
+        {/* Success State */}
+        {isConnected && selectedAccount && (
+          <div className="text-center p-4 bg-primary/10 border-2 border-primary/30 rounded-xl">
+            <CheckCircle2 className="w-8 h-8 text-primary mx-auto mb-2" />
+            <p className="text-primary font-pixel text-sm">Connected! Redirecting...</p>
+          </div>
+        )}
+
+        {/* Disconnect Button (only if connected) */}
+        {isConnected && (
+          <button
+            onClick={disconnect}
+            className="w-full text-center text-red-400 hover:text-red-300 text-sm font-pixel transition-colors"
+          >
+            Disconnect Wallet
+          </button>
+        )}
       </main>
     </div>
   )

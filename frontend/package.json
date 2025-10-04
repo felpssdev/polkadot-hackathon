@@ -9,6 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@polkadot/extension-dapp": "^0.46.6",
+    "@polkadot/api": "^10.11.2",
+    "@polkadot/util": "^12.6.2",
+    "@polkadot/util-crypto": "^12.6.2",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-slot": "^1.2.3",
     "class-variance-authority": "^0.7.1",
