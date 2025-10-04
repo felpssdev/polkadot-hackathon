@@ -65,7 +65,7 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-sm bg-card rounded-2xl border-2 border-white/10 shadow-2xl">
+      <div className="relative w-full max-w-xl bg-card rounded-2xl border-2 border-white/10 shadow-2xl">
         {/* Header */}
         <div className="flex items-start justify-between p-6 pb-4">
           {/* Account Info */}
