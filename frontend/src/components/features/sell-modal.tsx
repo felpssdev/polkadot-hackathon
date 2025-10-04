@@ -103,7 +103,7 @@ export function SellModal({ isOpen, onClose }: SellModalProps) {
                   <Minus className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="text-white font-pixel font-bold">Vender DOT</p>
+                  <p className="text-white font-pixel font-bold">Sell DOT</p>
                   <p className="text-white/60 text-sm">
                     Sell DOT for Brazilian Real
                   </p>

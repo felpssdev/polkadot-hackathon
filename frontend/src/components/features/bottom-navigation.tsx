@@ -19,7 +19,7 @@ export function BottomNavigation({
           className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gradient-to-r from-primary to-primary/90 text-white text-[11px] font-pixel font-bold hover:from-primary/90 hover:to-primary/80 transition-all shadow-lg shadow-primary/30 border-2 border-primary/50 btn-8bit"
         >
           <ArrowDownToLine className="h-[16px] w-[16px]" strokeWidth={3} />
-          Comprar
+          Buy
         </button>
 
         <button className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 border-2 border-primary/40 flex items-center justify-center hover:from-primary/30 hover:to-secondary/30 transition-all backdrop-blur-sm cursor-pointer shadow-lg pixel-blink">
@@ -31,7 +31,7 @@ export function BottomNavigation({
           className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-white text-black text-[11px] font-pixel font-bold hover:bg-white/90 transition-all shadow-lg border-2 border-white/30 btn-8bit"
         >
           <ArrowUpFromLine className="h-[16px] w-[16px]" strokeWidth={3} />
-          Vender
+          Sell
         </button>
       </div>
     </div>

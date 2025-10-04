@@ -3,14 +3,14 @@
 import { TrendingUp, TrendingDown, ChevronRight } from 'lucide-react'
 
 interface TransactionLimit {
-  type: 'Comprar' | 'Vender/Pagar'
+  type: 'Buy' | 'Sell/Pay'
   amount: string
   icon: typeof TrendingUp
 }
 
 const limits: TransactionLimit[] = [
-  { type: 'Comprar', amount: 'R$ 0', icon: TrendingUp },
-  { type: 'Vender/Pagar', amount: 'R$ 500', icon: TrendingDown },
+  { type: 'Buy', amount: 'R$ 0', icon: TrendingUp },
+  { type: 'Sell/Pay', amount: 'R$ 500', icon: TrendingDown },
 ]
 
 export function TransactionLimits() {
@@ -19,10 +19,10 @@ export function TransactionLimits() {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-[11px] font-pixel font-bold text-white mb-1.5">
-            Limites de Transação
+            Transaction Limits
           </h3>
           <p className="text-[9px] text-muted-foreground font-medium">
-            Máximo por operação
+            Maximum per operation
           </p>
         </div>
       </div>
@@ -49,7 +49,7 @@ export function TransactionLimits() {
       </div>
       <a href="/limites">
         <button className="w-full py-2.5 rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10 border-2 border-primary/30 text-[10px] font-pixel font-bold text-white hover:from-primary/15 hover:to-secondary/15 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group btn-8bit">
-          Aumentar Limites
+          Increase Limits
           <ChevronRight
             className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform"
             strokeWidth={3}

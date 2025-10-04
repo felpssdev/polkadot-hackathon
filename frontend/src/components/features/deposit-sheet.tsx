@@ -61,7 +61,7 @@ export function DepositSheet({ isOpen, onClose }: DepositSheetProps) {
                 </div>
                 <div className="flex-1 text-left">
                   <p className="text-white font-pixel font-bold">
-                    Depositar Polkadot/DOT
+                    Deposit Polkadot/DOT
                   </p>
                   <p className="text-white/60 text-sm">
                     Deposit DOT to your P2P.me wallet

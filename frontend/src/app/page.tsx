@@ -38,22 +38,22 @@ export default function Home() {
         <div className="grid grid-cols-4 gap-2.5">
           <ActionButton
             icon={Wallet}
-            label="Carteira"
+            label="Wallet"
             onClick={() => setIsWalletModalOpen(true)}
           />
           <ActionButton
             icon={ArrowDownToLine}
-            label="Depositar"
+            label="Deposit"
             onClick={() => setIsDepositSheetOpen(true)}
           />
           <ActionButton
             icon={ArrowUpFromLine}
-            label="Sacar"
+            label="Withdraw"
             onClick={() => setIsWithdrawModalOpen(true)}
           />
           <ActionButton
             icon={Headphones}
-            label="Suporte"
+            label="Support"
             onClick={() => console.log('Support clicked')}
           />
         </div>

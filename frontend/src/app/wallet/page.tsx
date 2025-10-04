@@ -16,7 +16,7 @@ export default function WalletLoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [selectedCurrency, setSelectedCurrency] = useState('BRL')
-  const [selectedLanguage, setSelectedLanguage] = useState('Português')
+  const [selectedLanguage, setSelectedLanguage] = useState('English')
   const [isConnecting, setIsConnecting] = useState(false)
   const [isConnected, setIsConnected] = useState(false)
   const [walletAddress, setWalletAddress] = useState<string | null>(null)
@@ -25,7 +25,7 @@ export default function WalletLoginPage() {
   const [isWalletSelected, setIsWalletSelected] = useState(false)
 
   const currencies = ['BRL']
-  const languages = ['Português', 'English', 'Español']
+  const languages = ['English', 'Português', 'Español']
 
   // Check if Polkadot.js extension is available
   // const isPolkadotJsAvailable =
@@ -34,12 +34,12 @@ export default function WalletLoginPage() {
   // Simulate Polkadot wallet connection
   const handleConnectWallet = async () => {
     if (!email) {
-      setError('Por favor, insira seu email')
+      setError('Please enter your email')
       return
     }
 
     if (!email.includes('@')) {
-      setError('Por favor, insira um email válido')
+      setError('Please enter a valid email')
       return
     }
 
@@ -69,7 +69,7 @@ export default function WalletLoginPage() {
         router.push('/')
       }, 1000)
     } catch {
-      setError('Erro ao conectar carteira. Tente novamente.')
+      setError('Error connecting wallet. Please try again.')
       setIsConnecting(false)
     }
   }
@@ -111,12 +111,12 @@ export default function WalletLoginPage() {
         {/* Title */}
         <div className="text-center py-4">
           <h1 className="text-2xl font-pixel font-bold text-white mb-2">
-            Acessar P2P.ME
+            Access P2P.ME
           </h1>
           <p className="text-muted-foreground text-sm">
             {isConnected
-              ? 'Conexão realizada com sucesso!'
-              : 'Conecte sua carteira Polkadot para começar'}
+              ? 'Connection successful!'
+              : 'Connect your Polkadot wallet to get started'}
           </p>
         </div>
 
@@ -157,7 +157,7 @@ export default function WalletLoginPage() {
           </div>
           {email && !isEmailValid && (
             <p className="text-red-400 text-xs font-pixel">
-              Por favor, insira um email válido
+              Please enter a valid email
             </p>
           )}
         </div>
@@ -165,7 +165,7 @@ export default function WalletLoginPage() {
         {/* Wallet Selection */}
         <div className="space-y-3">
           <h2 className="text-sm font-pixel font-bold text-white">
-            Carteira Polkadot
+            Polkadot Wallet
           </h2>
           <button
             onClick={handleWalletSelection}
@@ -203,10 +203,10 @@ export default function WalletLoginPage() {
                 <div className="text-white font-medium">Polkadot.js</div>
                 <div className="text-muted-foreground text-xs">
                   {isConnected && walletAddress
-                    ? `Conectado: ${walletAddress.slice(0, 10)}...`
+                    ? `Connected: ${walletAddress.slice(0, 10)}...`
                     : isWalletSelected
-                      ? 'Carteira selecionada - Pronto para conectar'
-                      : 'Clique para selecionar a carteira'}
+                      ? 'Wallet selected - Ready to connect'
+                      : 'Click to select wallet'}
                 </div>
               </div>
               {isConnected && (
@@ -223,14 +223,12 @@ export default function WalletLoginPage() {
 
         {/* Currency and Language Selection */}
         <div className="space-y-3">
-          <h2 className="text-sm font-pixel font-bold text-white">
-            Configurações
-          </h2>
+          <h2 className="text-sm font-pixel font-bold text-white">Settings</h2>
           <div className="grid grid-cols-2 gap-3">
             {/* Currency Dropdown */}
             <div className="space-y-2">
               <label className="text-xs font-pixel text-muted-foreground">
-                Moeda
+                Currency
               </label>
               <div className="relative">
                 <select
@@ -257,7 +255,7 @@ export default function WalletLoginPage() {
             {/* Language Dropdown */}
             <div className="space-y-2">
               <label className="text-xs font-pixel text-muted-foreground">
-                Idioma
+                Language
               </label>
               <div className="relative">
                 <select
@@ -293,12 +291,12 @@ export default function WalletLoginPage() {
         {/* Terms */}
         <div className="text-center py-4">
           <p className="text-muted-foreground text-xs">
-            Ao conectar sua carteira, você concorda com nossos{' '}
+            By connecting your wallet, you agree to our{' '}
             <a
               href="#"
               className="text-primary hover:text-primary/80 underline"
             >
-              Termos & Condições
+              Terms & Conditions
             </a>
           </p>
         </div>
@@ -314,18 +312,18 @@ export default function WalletLoginPage() {
           {isConnecting ? (
             <div className="flex items-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin" />
-              Conectando...
+              Connecting...
             </div>
           ) : isConnected ? (
-            'Conectado! Redirecionando...'
+            'Connected! Redirecting...'
           ) : !email ? (
-            'Insira seu email'
+            'Enter your email'
           ) : !isEmailValid ? (
-            'Email inválido'
+            'Invalid email'
           ) : !isWalletSelected ? (
-            'Selecione a carteira'
+            'Select wallet'
           ) : (
-            'Conectar Carteira Polkadot'
+            'Connect Polkadot Wallet'
           )}
         </Button>
       </main>

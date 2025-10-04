@@ -71,7 +71,7 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
                 </div>
                 <div className="flex-1 text-left">
                   <p className="text-white font-pixel font-bold">
-                    Sacar Polkadot/DOT
+                    Withdraw Polkadot/DOT
                   </p>
                   <p className="text-white/60 text-sm">
                     Withdraw DOT from your P2P.me wallet

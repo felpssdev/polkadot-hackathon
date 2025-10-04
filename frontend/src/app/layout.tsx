@@ -16,7 +16,7 @@ const pixelFont = PressStart2P({
 
 export const metadata: Metadata = {
   title: 'P2P.ME - Polkadot to BRL',
-  description: 'Revolucionando pagamentos Polkadot via PIX',
+  description: 'Revolutionizing Polkadot payments via PIX',
 }
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR" className="dark">
+    <html lang="en" className="dark">
       <body
         className={`${inter.variable} ${pixelFont.variable} font-sans antialiased`}
       >

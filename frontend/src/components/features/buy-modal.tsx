@@ -103,7 +103,7 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
                   <Plus className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="text-white font-pixel font-bold">Comprar DOT</p>
+                  <p className="text-white font-pixel font-bold">Buy DOT</p>
                   <p className="text-white/60 text-sm">
                     Buy DOT with Brazilian Real
                   </p>
