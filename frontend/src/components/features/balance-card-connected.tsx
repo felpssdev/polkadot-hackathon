@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 import { useExchangeRates } from '@/hooks/useOrders'
 import { useWallet } from '@/contexts/WalletContext'
 
@@ -10,7 +9,9 @@ interface BalanceCardConnectedProps {
   dotBalance?: number // Se tiver integração com saldo real
 }
 
-export function BalanceCardConnected({ dotBalance = 10.5 }: BalanceCardConnectedProps) {
+export function BalanceCardConnected({
+  dotBalance = 10.5,
+}: BalanceCardConnectedProps) {
   const [showBalance, setShowBalance] = useState(true)
   const { rates, loading } = useExchangeRates()
   const { selectedAccount } = useWallet()
@@ -91,4 +92,3 @@ export function BalanceCardConnected({ dotBalance = 10.5 }: BalanceCardConnected
     </div>
   )
 }
-

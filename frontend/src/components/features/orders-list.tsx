@@ -112,10 +112,11 @@ function OrderCard({ order }: { order: Order }) {
       {order.pix_key && (
         <div className="mt-3 pt-3 border-t border-white/[0.05]">
           <p className="text-xs text-muted-foreground mb-1">PIX Key</p>
-          <p className="text-xs text-white font-mono truncate">{order.pix_key}</p>
+          <p className="text-xs text-white font-mono truncate">
+            {order.pix_key}
+          </p>
         </div>
       )}
     </div>
   )
 }
-

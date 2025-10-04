@@ -69,10 +69,10 @@ export default function WalletLoginPage() {
   }
 
   // Handle account selection
-  const handleAccountSelect = (account: typeof accounts[0]) => {
+  const handleAccountSelect = (account: (typeof accounts)[0]) => {
     selectAccount(account)
     setShowAccountSelector(false)
-    
+
     // Redirect to main app
     setTimeout(() => {
       router.push('/')
@@ -87,7 +87,7 @@ export default function WalletLoginPage() {
   }, [isConnected, isConnecting, showAccountSelector, router])
 
   // Check for installed wallets
-  const hasWalletExtension = installedWallets.some(w => w.installed)
+  const hasWalletExtension = installedWallets.some((w) => w.installed)
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -117,9 +117,40 @@ export default function WalletLoginPage() {
                   Please install a Polkadot wallet extension:
                 </p>
                 <ul className="space-y-1 text-xs text-yellow-500/80">
-                  <li>• <a href="https://subwallet.app/" target="_blank" rel="noopener noreferrer" className="underline hover:text-yellow-500">SubWallet</a> (Recommended)</li>
-                  <li>• <a href="https://polkadot.js.org/extension/" target="_blank" rel="noopener noreferrer" className="underline hover:text-yellow-500">Polkadot.js</a></li>
-                  <li>• <a href="https://talisman.xyz/" target="_blank" rel="noopener noreferrer" className="underline hover:text-yellow-500">Talisman</a></li>
+                  <li>
+                    •{' '}
+                    <a
+                      href="https://subwallet.app/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-yellow-500"
+                    >
+                      SubWallet
+                    </a>{' '}
+                    (Recommended)
+                  </li>
+                  <li>
+                    •{' '}
+                    <a
+                      href="https://polkadot.js.org/extension/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-yellow-500"
+                    >
+                      Polkadot.js
+                    </a>
+                  </li>
+                  <li>
+                    •{' '}
+                    <a
+                      href="https://talisman.xyz/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-yellow-500"
+                    >
+                      Talisman
+                    </a>
+                  </li>
                 </ul>
               </div>
             </div>
@@ -148,7 +179,8 @@ export default function WalletLoginPage() {
                         {account.meta.name || 'Account'}
                       </div>
                       <div className="text-muted-foreground text-xs truncate">
-                        {account.address.slice(0, 10)}...{account.address.slice(-8)}
+                        {account.address.slice(0, 10)}...
+                        {account.address.slice(-8)}
                       </div>
                       <div className="text-primary text-xs">
                         {getWalletDisplayName(account.meta.source || '')}
@@ -190,7 +222,10 @@ export default function WalletLoginPage() {
                     {getWalletIcon(selectedAccount.meta.source || '')}
                   </span>
                 ) : isConnecting ? (
-                  <Loader2 className="h-6 w-6 text-primary animate-spin" strokeWidth={2.5} />
+                  <Loader2
+                    className="h-6 w-6 text-primary animate-spin"
+                    strokeWidth={2.5}
+                  />
                 ) : (
                   <Wallet className="h-6 w-6 text-primary" strokeWidth={2.5} />
                 )}
@@ -319,12 +354,14 @@ export default function WalletLoginPage() {
             )}
           </Button>
         )}
-        
+
         {/* Success State */}
         {isConnected && selectedAccount && (
           <div className="text-center p-4 bg-primary/10 border-2 border-primary/30 rounded-xl">
             <CheckCircle2 className="w-8 h-8 text-primary mx-auto mb-2" />
-            <p className="text-primary font-pixel text-sm">Connected! Redirecting...</p>
+            <p className="text-primary font-pixel text-sm">
+              Connected! Redirecting...
+            </p>
           </div>
         )}
 

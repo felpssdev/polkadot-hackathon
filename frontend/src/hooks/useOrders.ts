@@ -111,7 +111,7 @@ export function useCreateOrder() {
         setLoading(false)
       }
     },
-    []
+    [],
   )
 
   return {
@@ -120,4 +120,3 @@ export function useCreateOrder() {
     error,
   }
 }
-

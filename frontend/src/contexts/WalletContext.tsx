@@ -1,6 +1,12 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react'
 import type { InjectedAccountWithMeta } from '@polkadot/extension-inject/types'
 import {
   initializePolkadot,
@@ -25,7 +31,7 @@ interface WalletContextType {
   disconnect: () => void
   selectAccount: (account: InjectedAccountWithMeta) => void
   sign: (message: string) => Promise<string | null>
-  
+
   // Utils
   getFormattedAddress: (length?: number) => string
 }
@@ -36,8 +42,11 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [isConnected, setIsConnected] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
   const [accounts, setAccounts] = useState<InjectedAccountWithMeta[]>([])
-  const [selectedAccount, setSelectedAccount] = useState<InjectedAccountWithMeta | null>(null)
-  const [installedWallets, setInstalledWallets] = useState<WalletExtension[]>([])
+  const [selectedAccount, setSelectedAccount] =
+    useState<InjectedAccountWithMeta | null>(null)
+  const [installedWallets, setInstalledWallets] = useState<WalletExtension[]>(
+    [],
+  )
   const [error, setError] = useState<string | null>(null)
 
   // Check installed wallets on mount
@@ -46,7 +55,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       const wallets = await checkInstalledWallets()
       setInstalledWallets(wallets)
     }
-    
+
     checkWallets()
   }, [])
 
@@ -63,7 +72,9 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         const success = await connect()
         if (success && savedAddress) {
           const allAccounts = await getAccounts()
-          const account = allAccounts.find(acc => acc.address === savedAddress)
+          const account = allAccounts.find(
+            (acc) => acc.address === savedAddress,
+          )
           if (account) {
             setSelectedAccount(account)
           }
@@ -81,24 +92,28 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     try {
       // Initialize Polkadot extension
       const initialized = await initializePolkadot('PolkaPay')
-      
+
       if (!initialized) {
-        setError('No Polkadot wallet extension found. Please install SubWallet, Polkadot.js, or Talisman.')
+        setError(
+          'No Polkadot wallet extension found. Please install SubWallet, Polkadot.js, or Talisman.',
+        )
         setIsConnecting(false)
         return false
       }
 
       // Get accounts
       const allAccounts = await getAccounts()
-      
+
       if (allAccounts.length === 0) {
-        setError('No accounts found. Please create an account in your wallet extension.')
+        setError(
+          'No accounts found. Please create an account in your wallet extension.',
+        )
         setIsConnecting(false)
         return false
       }
 
       setAccounts(allAccounts)
-      
+
       // Auto-select first account if none selected
       if (!selectedAccount) {
         setSelectedAccount(allAccounts[0])
@@ -108,7 +123,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       setIsConnected(true)
       localStorage.setItem('walletConnected', 'true')
       setIsConnecting(false)
-      
+
       return true
     } catch (err) {
       console.error('Error connecting wallet:', err)
@@ -132,26 +147,32 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('selectedWalletAddress', account.address)
   }, [])
 
-  const sign = useCallback(async (message: string): Promise<string | null> => {
-    if (!selectedAccount) {
-      setError('No account selected')
-      return null
-    }
+  const sign = useCallback(
+    async (message: string): Promise<string | null> => {
+      if (!selectedAccount) {
+        setError('No account selected')
+        return null
+      }
 
-    try {
-      const signature = await signMessage(selectedAccount.address, message)
-      return signature
-    } catch (err) {
-      console.error('Error signing message:', err)
-      setError('Failed to sign message')
-      return null
-    }
-  }, [selectedAccount])
+      try {
+        const signature = await signMessage(selectedAccount.address, message)
+        return signature
+      } catch (err) {
+        console.error('Error signing message:', err)
+        setError('Failed to sign message')
+        return null
+      }
+    },
+    [selectedAccount],
+  )
 
-  const getFormattedAddress = useCallback((length: number = 8): string => {
-    if (!selectedAccount) return ''
-    return formatAddress(selectedAccount.address, length)
-  }, [selectedAccount])
+  const getFormattedAddress = useCallback(
+    (length: number = 8): string => {
+      if (!selectedAccount) return ''
+      return formatAddress(selectedAccount.address, length)
+    },
+    [selectedAccount],
+  )
 
   return (
     <WalletContext.Provider
@@ -181,4 +202,3 @@ export function useWallet() {
   }
   return context
 }
-

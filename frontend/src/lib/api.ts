@@ -2,7 +2,8 @@
  * API Client for PolkaPay Backend
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 interface RequestOptions extends RequestInit {
   token?: string
@@ -13,13 +14,14 @@ interface RequestOptions extends RequestInit {
  */
 async function apiFetch<T>(
   endpoint: string,
-  options: RequestOptions = {}
+  options: RequestOptions = {},
 ): Promise<T> {
   const { token, ...fetchOptions } = options
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    ...fetchOptions.headers,
+    Authorization: `Bearer ${token}`,
+    ...(fetchOptions.headers as Record<string, string>),
   }
 
   if (token) {
@@ -51,7 +53,7 @@ export const authApi = {
   loginWithWallet: async (
     walletAddress: string,
     message: string,
-    signature: string
+    signature: string,
   ) => {
     return apiFetch('/auth/wallet', {
       method: 'POST',
@@ -143,7 +145,7 @@ export const ordersApi = {
   confirmPayment: async (
     orderId: number,
     pixTxId: string,
-    paymentProof?: string
+    paymentProof?: string,
   ) => {
     return apiFetch(`/orders/${orderId}/confirm-payment`, {
       method: 'POST',
@@ -239,4 +241,3 @@ export default {
   orders: ordersApi,
   lp: lpApi,
 }
-

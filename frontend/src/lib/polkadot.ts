@@ -31,9 +31,11 @@ export const SUPPORTED_WALLETS = [
 export async function checkInstalledWallets(): Promise<WalletExtension[]> {
   if (typeof window === 'undefined') return []
 
-  const injectedWeb3 = (window as any).injectedWeb3 || {}
-  
-  return SUPPORTED_WALLETS.map(wallet => ({
+  const injectedWeb3 =
+    (window as unknown as { injectedWeb3?: Record<string, unknown> })
+      .injectedWeb3 || {}
+
+  return SUPPORTED_WALLETS.map((wallet) => ({
     ...wallet,
     installed: !!injectedWeb3[wallet.name],
   }))
@@ -42,9 +44,11 @@ export async function checkInstalledWallets(): Promise<WalletExtension[]> {
 /**
  * Initialize connection with Polkadot extension
  */
-export async function initializePolkadot(appName: string = 'PolkaPay'): Promise<boolean> {
+export async function initializePolkadot(
+  appName: string = 'PolkaPay',
+): Promise<boolean> {
   if (typeof window === 'undefined') return false
-  
+
   try {
     const { web3Enable } = await import('@polkadot/extension-dapp')
     const extensions = await web3Enable(appName)
@@ -60,7 +64,7 @@ export async function initializePolkadot(appName: string = 'PolkaPay'): Promise<
  */
 export async function getAccounts(): Promise<InjectedAccountWithMeta[]> {
   if (typeof window === 'undefined') return []
-  
+
   try {
     const { web3Accounts } = await import('@polkadot/extension-dapp')
     const accounts = await web3Accounts()
@@ -76,7 +80,7 @@ export async function getAccounts(): Promise<InjectedAccountWithMeta[]> {
  */
 export async function getSigner(address: string) {
   if (typeof window === 'undefined') return null
-  
+
   try {
     const { web3FromAddress } = await import('@polkadot/extension-dapp')
     const injector = await web3FromAddress(address)
@@ -90,13 +94,16 @@ export async function getSigner(address: string) {
 /**
  * Sign a message with the account
  */
-export async function signMessage(address: string, message: string): Promise<string | null> {
+export async function signMessage(
+  address: string,
+  message: string,
+): Promise<string | null> {
   if (typeof window === 'undefined') return null
-  
+
   try {
     const { web3FromAddress } = await import('@polkadot/extension-dapp')
     const injector = await web3FromAddress(address)
-    
+
     if (!injector.signer.signRaw) {
       throw new Error('Signer does not support signRaw')
     }
@@ -132,6 +139,7 @@ export function isValidPolkadotAddress(address: string): boolean {
     // and have specific length
     return address.length >= 47 && address.length <= 48
   } catch (error) {
+    console.log('Error validating Polkadot address:', error)
     return false
   }
 }
@@ -140,9 +148,10 @@ export function isValidPolkadotAddress(address: string): boolean {
  * Get wallet icon/logo based on source
  */
 export function getWalletIcon(source: string): string {
-  const wallet = SUPPORTED_WALLETS.find(w => 
-    source.toLowerCase().includes(w.name.toLowerCase()) ||
-    source.toLowerCase().includes(w.displayName.toLowerCase())
+  const wallet = SUPPORTED_WALLETS.find(
+    (w) =>
+      source.toLowerCase().includes(w.name.toLowerCase()) ||
+      source.toLowerCase().includes(w.displayName.toLowerCase()),
   )
   return wallet?.icon || '💼'
 }
@@ -151,9 +160,8 @@ export function getWalletIcon(source: string): string {
  * Get wallet display name based on source
  */
 export function getWalletDisplayName(source: string): string {
-  const wallet = SUPPORTED_WALLETS.find(w => 
-    source.toLowerCase().includes(w.name.toLowerCase())
+  const wallet = SUPPORTED_WALLETS.find((w) =>
+    source.toLowerCase().includes(w.name.toLowerCase()),
   )
   return wallet?.displayName || source
 }
-

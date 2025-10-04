@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Wallet, ChevronDown, LogOut, Copy, CheckCircle2 } from 'lucide-react'
+import { ChevronDown, LogOut, Copy, CheckCircle2 } from 'lucide-react'
 import { useWallet } from '@/contexts/WalletContext'
 import { getWalletIcon, getWalletDisplayName } from '@/lib/polkadot'
 
@@ -28,7 +28,7 @@ export function WalletStatus() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const handleAccountChange = (account: typeof accounts[0]) => {
+  const handleAccountChange = (account: (typeof accounts)[0]) => {
     selectAccount(account)
     setShowDropdown(false)
   }
@@ -45,7 +45,9 @@ export function WalletStatus() {
         <span className="text-white text-sm font-medium hidden sm:inline">
           {getFormattedAddress(6)}
         </span>
-        <ChevronDown className={`w-4 h-4 text-white/60 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className={`w-4 h-4 text-white/60 transition-transform ${showDropdown ? 'rotate-180' : ''}`}
+        />
         <div className="w-2 h-2 bg-primary rounded-full pixel-blink" />
       </button>
 
@@ -86,12 +88,16 @@ export function WalletStatus() {
                 {copied ? (
                   <>
                     <CheckCircle2 className="w-4 h-4 text-green-500" />
-                    <span className="text-green-500 text-xs font-pixel">Copied!</span>
+                    <span className="text-green-500 text-xs font-pixel">
+                      Copied!
+                    </span>
                   </>
                 ) : (
                   <>
                     <Copy className="w-4 h-4 text-white/60" />
-                    <span className="text-white/60 text-xs font-pixel">Copy Address</span>
+                    <span className="text-white/60 text-xs font-pixel">
+                      Copy Address
+                    </span>
                   </>
                 )}
               </button>
@@ -106,7 +112,7 @@ export function WalletStatus() {
                 <div className="max-h-48 overflow-y-auto">
                   {accounts.map((account) => {
                     if (account.address === selectedAccount.address) return null
-                    
+
                     return (
                       <button
                         key={account.address}
@@ -121,7 +127,8 @@ export function WalletStatus() {
                             {account.meta.name || 'Account'}
                           </div>
                           <div className="text-muted-foreground text-xs truncate">
-                            {account.address.slice(0, 10)}...{account.address.slice(-8)}
+                            {account.address.slice(0, 10)}...
+                            {account.address.slice(-8)}
                           </div>
                         </div>
                       </button>
@@ -150,4 +157,3 @@ export function WalletStatus() {
     </div>
   )
 }
-

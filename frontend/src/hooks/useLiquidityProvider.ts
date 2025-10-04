@@ -37,7 +37,9 @@ export function useLiquidityProvider(token?: string) {
       const data = await lpApi.getProfile(token)
       setProfile(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch LP profile')
+      setError(
+        err instanceof Error ? err.message : 'Failed to fetch LP profile',
+      )
     } finally {
       setLoading(false)
     }
@@ -62,7 +64,7 @@ export function useLiquidityProvider(token?: string) {
         setLoading(false)
       }
     },
-    [token]
+    [token],
   )
 
   const updateAvailability = useCallback(
@@ -72,15 +74,15 @@ export function useLiquidityProvider(token?: string) {
       try {
         await lpApi.updateAvailability(isAvailable, token)
         setProfile((prev) =>
-          prev ? { ...prev, is_available: isAvailable } : null
+          prev ? { ...prev, is_available: isAvailable } : null,
         )
       } catch (err) {
         throw new Error(
-          err instanceof Error ? err.message : 'Failed to update availability'
+          err instanceof Error ? err.message : 'Failed to update availability',
         )
       }
     },
-    [token]
+    [token],
   )
 
   return {
@@ -120,4 +122,3 @@ export function useLPEarnings(token?: string) {
     fetchEarnings,
   }
 }
-
