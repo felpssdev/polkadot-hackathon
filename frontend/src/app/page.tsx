@@ -1,12 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import {
-  Wallet,
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  Headphones,
-} from 'lucide-react'
+import { Wallet, ArrowDownToLine, ArrowUpFromLine, Plus } from 'lucide-react'
 import { Header } from '@/components/layout/header'
 import { BalanceCard } from '@/components/features/balance-card'
 import { ActionButton } from '@/components/features/action-button'
@@ -16,11 +11,13 @@ import { BottomNavigation } from '@/components/features/bottom-navigation'
 import { WalletModal } from '@/components/features/wallet-modal'
 import { DepositSheet } from '@/components/features/deposit-sheet'
 import { WithdrawModal } from '@/components/features/withdraw-modal'
+import { BuyModal } from '@/components/features/buy-modal'
 
 export default function Home() {
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const [isDepositSheetOpen, setIsDepositSheetOpen] = useState(false)
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false)
+  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false)
 
   return (
     <div className="min-h-screen bg-background pb-28">
@@ -48,9 +45,9 @@ export default function Home() {
             onClick={() => setIsWithdrawModalOpen(true)}
           />
           <ActionButton
-            icon={Headphones}
-            label="Suporte"
-            onClick={() => console.log('Support clicked')}
+            icon={Plus}
+            label="Comprar"
+            onClick={() => setIsBuyModalOpen(true)}
           />
         </div>
 
@@ -87,6 +84,12 @@ export default function Home() {
       <WithdrawModal
         isOpen={isWithdrawModalOpen}
         onClose={() => setIsWithdrawModalOpen(false)}
+      />
+
+      {/* Buy Modal */}
+      <BuyModal
+        isOpen={isBuyModalOpen}
+        onClose={() => setIsBuyModalOpen(false)}
       />
     </div>
   )
