@@ -17,7 +17,7 @@ export function Header() {
             </span>
           </div>
           <h1 className="text-[13px] font-pixel font-bold tracking-tight text-white">
-            DOT2PIX
+            PolkaPay
           </h1>
         </div>
       </div>

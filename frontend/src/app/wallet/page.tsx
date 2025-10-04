@@ -95,7 +95,7 @@ export default function WalletLoginPage() {
         {/* Title */}
         <div className="text-center py-4">
           <h1 className="text-3xl font-pixel font-bold text-white mb-3">
-            Access DOT2PIX
+            Access PolkaPay
           </h1>
           <p className="text-muted-foreground text-sm">
             {isConnected && selectedAccount

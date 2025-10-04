@@ -1,4 +1,44 @@
 services:
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - DEBUG=True
+      - DATABASE_URL=postgresql://polkapay:polkapay123@db:5432/polkapay
+      - REDIS_URL=redis://redis:6379/0
+      - POLKADOT_NODE_URL=wss://rococo-rpc.polkadot.io
+      - PIX_MOCK_ENABLED=True
+      - SECRET_KEY=dev-secret-key-change-in-production
+    depends_on:
+      - db
+      - redis
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=polkapay
+      - POSTGRES_PASSWORD=polkapay123
+      - POSTGRES_DB=polkapay
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Redis (for caching and queues)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # Frontend
   frontend:
     build:
       context: ./frontend
@@ -11,6 +51,12 @@ services:
     environment:
       - NODE_ENV=development
       - WATCHPACK_POLLING=true
+      - NEXT_PUBLIC_API_URL=http://backend:8000/api/v1
     command: npm run dev
     stdin_open: true
     tty: true
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

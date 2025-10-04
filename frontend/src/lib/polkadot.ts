@@ -42,7 +42,7 @@ export async function checkInstalledWallets(): Promise<WalletExtension[]> {
 /**
  * Initialize connection with Polkadot extension
  */
-export async function initializePolkadot(appName: string = 'DOT2PIX'): Promise<boolean> {
+export async function initializePolkadot(appName: string = 'PolkaPay'): Promise<boolean> {
   if (typeof window === 'undefined') return false
   
   try {
