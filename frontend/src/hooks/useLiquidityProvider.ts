@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { lpApi } from '@/lib/api'
+import { lpApi } from '../lib/api'
 
 export interface LiquidityProvider {
   id: number
@@ -35,7 +35,7 @@ export function useLiquidityProvider(token?: string) {
     setError(null)
     try {
       const data = await lpApi.getProfile(token)
-      setProfile(data)
+      setProfile(data as LiquidityProvider)
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Failed to fetch LP profile',
@@ -53,7 +53,7 @@ export function useLiquidityProvider(token?: string) {
       setError(null)
       try {
         const data = await lpApi.register(pixKey, pixKeyType, token)
-        setProfile(data)
+        setProfile(data as LiquidityProvider)
         return data
       } catch (err) {
         const errorMessage =
@@ -107,7 +107,7 @@ export function useLPEarnings(token?: string) {
     setError(null)
     try {
       const data = await lpApi.getEarnings(token)
-      setEarnings(data)
+      setEarnings(data as LPEarnings)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch earnings')
     } finally {

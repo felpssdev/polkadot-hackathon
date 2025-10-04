@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { ordersApi } from '@/lib/api'
+import { ordersApi } from '../lib/api'
 
 export interface Order {
   id: number
@@ -37,7 +37,7 @@ export function useOrders() {
     setError(null)
     try {
       const data = await ordersApi.getActiveOrders(orderType)
-      setOrders(data)
+      setOrders(data as Order[])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch orders')
     } finally {
