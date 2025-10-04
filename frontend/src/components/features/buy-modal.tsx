@@ -65,7 +65,7 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-md bg-card rounded-2xl border-2 border-white/10 shadow-2xl max-h-[90vh] overflow-hidden">
+      <div className="relative w-full max-w-md bg-card rounded-2xl border-2 border-white/10 shadow-2xl max-h-[85vh] overflow-hidden">
         {!showKeyboard ? (
           /* Buy Options */
           <>
@@ -131,29 +131,29 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
             </div>
 
             {/* Amount Display */}
-            <div className="px-6 pb-6 text-center">
-              <div className="text-4xl font-pixel font-bold text-white mb-2">
+            <div className="px-6 pb-4 text-center">
+              <div className="text-3xl font-pixel font-bold text-white mb-2">
                 {amount || '0'} DOT
               </div>
               <div className="flex items-center justify-center gap-2 text-white/60">
-                <div className="w-4 h-4 border-t-2 border-b-2 border-white/40"></div>
-                <span className="text-sm font-pixel">{calculateBRL()} BRL</span>
+                <div className="w-3 h-3 border-t-2 border-b-2 border-white/40"></div>
+                <span className="text-xs font-pixel">{calculateBRL()} BRL</span>
               </div>
             </div>
 
             {/* Transaction Limit Warning */}
-            <div className="px-6 pb-6">
-              <div className="p-4 bg-white/5 rounded-xl border border-primary/30">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <FileText className="w-5 h-5 text-primary" />
-                    <span className="text-white font-pixel text-sm">
+            <div className="px-6 pb-4">
+              <div className="p-3 bg-white/5 rounded-xl border border-primary/30">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-primary" />
+                    <span className="text-white font-pixel text-xs">
                       Your Transaction Limit: {transactionLimit} DOT
                     </span>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-white/40" />
+                  <ChevronRight className="w-3 h-3 text-white/40" />
                 </div>
-                <p className="text-white/60 text-xs mb-4">
+                <p className="text-white/60 text-xs mb-3">
                   Increase your transaction limits by ZK-verifying your socials.
                 </p>
                 <button className="w-full py-2 bg-primary text-white font-pixel font-bold text-xs rounded-lg hover:bg-primary/90 transition-colors">
@@ -164,99 +164,42 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
 
             {/* Numeric Keyboard */}
             <div className="px-6 pb-4">
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                {/* Row 1 */}
-                <button
-                  onClick={() => handleNumberPress('1')}
-                  className="aspect-square bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors flex items-center justify-center text-white font-pixel text-xl"
-                >
-                  1
-                </button>
-                <button
-                  onClick={() => handleNumberPress('2')}
-                  className="aspect-square bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors flex items-center justify-center text-white font-pixel text-xl"
-                >
-                  2
-                </button>
-                <button
-                  onClick={() => handleNumberPress('3')}
-                  className="aspect-square bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors flex items-center justify-center text-white font-pixel text-xl"
-                >
-                  3
-                </button>
-
-                {/* Row 2 */}
-                <button
-                  onClick={() => handleNumberPress('4')}
-                  className="aspect-square bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors flex items-center justify-center text-white font-pixel text-xl"
-                >
-                  4
-                </button>
-                <button
-                  onClick={() => handleNumberPress('5')}
-                  className="aspect-square bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors flex items-center justify-center text-white font-pixel text-xl"
-                >
-                  5
-                </button>
-                <button
-                  onClick={() => handleNumberPress('6')}
-                  className="aspect-square bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors flex items-center justify-center text-white font-pixel text-xl"
-                >
-                  6
-                </button>
-
-                {/* Row 3 */}
-                <button
-                  onClick={() => handleNumberPress('7')}
-                  className="aspect-square bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors flex items-center justify-center text-white font-pixel text-xl"
-                >
-                  7
-                </button>
-                <button
-                  onClick={() => handleNumberPress('8')}
-                  className="aspect-square bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors flex items-center justify-center text-white font-pixel text-xl"
-                >
-                  8
-                </button>
-                <button
-                  onClick={() => handleNumberPress('9')}
-                  className="aspect-square bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors flex items-center justify-center text-white font-pixel text-xl"
-                >
-                  9
-                </button>
-
-                {/* Row 4 */}
-                <button
-                  onClick={() => handleNumberPress('.')}
-                  className="aspect-square bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors flex items-center justify-center text-white font-pixel text-xl"
-                >
-                  .
-                </button>
-                <button
-                  onClick={() => handleNumberPress('0')}
-                  className="aspect-square bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors flex items-center justify-center text-white font-pixel text-xl"
-                >
-                  0
-                </button>
-                <button
-                  onClick={() => handleNumberPress('backspace')}
-                  className="aspect-square bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors flex items-center justify-center text-white font-pixel text-xl"
-                >
-                  ⌫
-                </button>
+              <div className="grid grid-cols-3 gap-1.5 mb-3">
+                {[
+                  '1',
+                  '2',
+                  '3',
+                  '4',
+                  '5',
+                  '6',
+                  '7',
+                  '8',
+                  '9',
+                  '.',
+                  '0',
+                  'backspace',
+                ].map((key) => (
+                  <button
+                    key={key}
+                    onClick={() => handleNumberPress(key)}
+                    className="h-12 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors flex items-center justify-center text-white font-pixel text-sm"
+                  >
+                    {key === 'backspace' ? '⌫' : key}
+                  </button>
+                ))}
               </div>
 
               {/* Action Buttons */}
-              <div className="flex justify-between mb-4">
+              <div className="flex justify-between mb-3">
                 <button
                   onClick={handleMax}
-                  className="text-white/60 text-sm font-pixel hover:text-white transition-colors"
+                  className="text-white/60 text-xs font-pixel hover:text-white transition-colors"
                 >
                   Max
                 </button>
                 <button
                   onClick={handleClear}
-                  className="text-white/60 text-sm font-pixel hover:text-white transition-colors"
+                  className="text-white/60 text-xs font-pixel hover:text-white transition-colors"
                 >
                   Clear
                 </button>
@@ -265,7 +208,7 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
               {/* Continue Button */}
               <button
                 disabled={!canContinue()}
-                className="w-full py-4 bg-primary text-white font-pixel font-bold rounded-xl hover:bg-primary/90 disabled:bg-gray-400 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors border border-primary/30"
+                className="w-full py-3 bg-primary text-white font-pixel font-bold rounded-xl hover:bg-primary/90 disabled:bg-gray-400 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors border border-primary/30 text-sm"
               >
                 Continue
               </button>

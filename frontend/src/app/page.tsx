@@ -1,7 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Wallet, ArrowDownToLine, ArrowUpFromLine, Plus } from 'lucide-react'
+import {
+  Wallet,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Headphones,
+} from 'lucide-react'
 import { Header } from '@/components/layout/header'
 import { BalanceCard } from '@/components/features/balance-card'
 import { ActionButton } from '@/components/features/action-button'
@@ -45,9 +50,9 @@ export default function Home() {
             onClick={() => setIsWithdrawModalOpen(true)}
           />
           <ActionButton
-            icon={Plus}
-            label="Comprar"
-            onClick={() => setIsBuyModalOpen(true)}
+            icon={Headphones}
+            label="Suporte"
+            onClick={() => console.log('Support clicked')}
           />
         </div>
 
@@ -66,7 +71,7 @@ export default function Home() {
       </main>
 
       {/* Bottom Navigation */}
-      <BottomNavigation />
+      <BottomNavigation onBuyClick={() => setIsBuyModalOpen(true)} />
 
       {/* Wallet Modal */}
       <WalletModal
