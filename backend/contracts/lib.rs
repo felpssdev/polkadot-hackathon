@@ -108,7 +108,10 @@ mod polkapay_escrow {
             }
 
             let order_id = self.next_order_id;
-            let lp_fee = (amount * self.lp_fee_bps as u128) / 10000;
+            let lp_fee = amount
+                .checked_mul(self.lp_fee_bps as u128)
+                .and_then(|v| v.checked_div(10000))
+                .ok_or(Error::InsufficientBalance)?;
 
             let order = Order {
                 id: order_id,
@@ -121,7 +124,7 @@ mod polkapay_escrow {
             };
 
             self.orders.insert(order_id, &order);
-            self.next_order_id += 1;
+            self.next_order_id = self.next_order_id.checked_add(1).ok_or(Error::InsufficientBalance)?;
 
             self.env().emit_event(OrderCreated {
                 order_id,
@@ -185,7 +188,7 @@ mod polkapay_escrow {
             }
 
             // Calculate amounts
-            let lp_payment = order.amount - order.lp_fee;
+            let lp_payment = order.amount.checked_sub(order.lp_fee).ok_or(Error::InsufficientBalance)?;
 
             // Transfer to LP
             if self.env().transfer(seller, lp_payment).is_err() {
