@@ -242,5 +242,341 @@ mod polkapay_escrow {
             self.env().balance()
         }
     }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[ink::test]
+        fn test_new_works() {
+            let contract = PolkaPayEscrow::new(200);
+            assert_eq!(contract.lp_fee_bps, 200);
+            assert_eq!(contract.next_order_id, 1);
+        }
+
+        #[ink::test]
+        fn test_new_with_different_fees() {
+            let contract1 = PolkaPayEscrow::new(100);
+            assert_eq!(contract1.lp_fee_bps, 100);
+
+            let contract2 = PolkaPayEscrow::new(500);
+            assert_eq!(contract2.lp_fee_bps, 500);
+        }
+
+        #[ink::test]
+        fn test_create_order_works() {
+            let mut contract = PolkaPayEscrow::new(200);
+            
+            // Set test balance
+            ink::env::test::set_value_transferred::<ink::env::DefaultEnvironment>(1000);
+            
+            let result = contract.create_order();
+            assert!(result.is_ok());
+            
+            let order_id = result.unwrap();
+            assert_eq!(order_id, 1);
+            
+            // Verify order was created
+            let order = contract.get_order(order_id);
+            assert!(order.is_some());
+            
+            let order = order.unwrap();
+            assert_eq!(order.amount, 1000);
+            assert_eq!(order.lp_fee, 20); // 2% of 1000
+            assert_eq!(order.status, OrderStatus::Pending);
+        }
+
+        #[ink::test]
+        fn test_create_order_with_zero_amount_fails() {
+            let mut contract = PolkaPayEscrow::new(200);
+            
+            // Set zero balance
+            ink::env::test::set_value_transferred::<ink::env::DefaultEnvironment>(0);
+            
+            let result = contract.create_order();
+            assert!(result.is_err());
+            assert_eq!(result.unwrap_err(), Error::InsufficientBalance);
+        }
+
+        #[ink::test]
+        fn test_accept_order_works() {
+            let mut contract = PolkaPayEscrow::new(200);
+            
+            // Create order first
+            ink::env::test::set_value_transferred::<ink::env::DefaultEnvironment>(1000);
+            let order_id = contract.create_order().unwrap();
+            
+            // Change caller to LP
+            let lp_account = ink::env::test::default_accounts::<ink::env::DefaultEnvironment>().bob;
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(lp_account);
+            
+            // Accept order
+            let result = contract.accept_order(order_id);
+            assert!(result.is_ok());
+            
+            // Verify order was accepted
+            let order = contract.get_order(order_id).unwrap();
+            assert_eq!(order.status, OrderStatus::Accepted);
+            assert_eq!(order.seller, Some(lp_account));
+        }
+
+        #[ink::test]
+        fn test_accept_order_already_accepted_fails() {
+            let mut contract = PolkaPayEscrow::new(200);
+            
+            // Create and accept order
+            ink::env::test::set_value_transferred::<ink::env::DefaultEnvironment>(1000);
+            let order_id = contract.create_order().unwrap();
+            
+            let lp_account = ink::env::test::default_accounts::<ink::env::DefaultEnvironment>().bob;
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(lp_account);
+            contract.accept_order(order_id).unwrap();
+            
+            // Try to accept again
+            let result = contract.accept_order(order_id);
+            assert!(result.is_err());
+            assert_eq!(result.unwrap_err(), Error::InvalidStatus);
+        }
+
+        #[ink::test]
+        fn test_accept_order_not_found_fails() {
+            let mut contract = PolkaPayEscrow::new(200);
+            
+            let result = contract.accept_order(999);
+            assert!(result.is_err());
+            assert_eq!(result.unwrap_err(), Error::OrderNotFound);
+        }
+
+        #[ink::test]
+        fn test_confirm_payment_sent_works() {
+            let mut contract = PolkaPayEscrow::new(200);
+            let accounts = ink::env::test::default_accounts::<ink::env::DefaultEnvironment>();
+            
+            // Create order
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.alice);
+            ink::env::test::set_value_transferred::<ink::env::DefaultEnvironment>(1000);
+            let order_id = contract.create_order().unwrap();
+            
+            // Accept order
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.bob);
+            contract.accept_order(order_id).unwrap();
+            
+            // Confirm payment sent by buyer
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.alice);
+            let result = contract.confirm_payment_sent(order_id);
+            assert!(result.is_ok());
+            
+            // Verify status
+            let order = contract.get_order(order_id).unwrap();
+            assert_eq!(order.status, OrderStatus::PaymentSent);
+        }
+
+        #[ink::test]
+        fn test_confirm_payment_sent_unauthorized_fails() {
+            let mut contract = PolkaPayEscrow::new(200);
+            let accounts = ink::env::test::default_accounts::<ink::env::DefaultEnvironment>();
+            
+            // Create and accept order
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.alice);
+            ink::env::test::set_value_transferred::<ink::env::DefaultEnvironment>(1000);
+            let order_id = contract.create_order().unwrap();
+            
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.bob);
+            contract.accept_order(order_id).unwrap();
+            
+            // Try to confirm payment from wrong account
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.charlie);
+            let result = contract.confirm_payment_sent(order_id);
+            assert!(result.is_err());
+            assert_eq!(result.unwrap_err(), Error::Unauthorized);
+        }
+
+        #[ink::test]
+        fn test_confirm_payment_sent_wrong_status_fails() {
+            let mut contract = PolkaPayEscrow::new(200);
+            
+            // Create order but don't accept
+            ink::env::test::set_value_transferred::<ink::env::DefaultEnvironment>(1000);
+            let order_id = contract.create_order().unwrap();
+            
+            // Try to confirm payment when still pending
+            let result = contract.confirm_payment_sent(order_id);
+            assert!(result.is_err());
+            assert_eq!(result.unwrap_err(), Error::InvalidStatus);
+        }
+
+        #[ink::test]
+        fn test_complete_order_works() {
+            let mut contract = PolkaPayEscrow::new(200);
+            let accounts = ink::env::test::default_accounts::<ink::env::DefaultEnvironment>();
+            
+            // Create order
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.alice);
+            ink::env::test::set_value_transferred::<ink::env::DefaultEnvironment>(1000);
+            let order_id = contract.create_order().unwrap();
+            
+            // Accept order
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.bob);
+            contract.accept_order(order_id).unwrap();
+            
+            // Confirm payment
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.alice);
+            contract.confirm_payment_sent(order_id).unwrap();
+            
+            // Complete order
+            let result = contract.complete_order(order_id);
+            assert!(result.is_ok());
+            
+            // Verify status
+            let order = contract.get_order(order_id).unwrap();
+            assert_eq!(order.status, OrderStatus::Completed);
+        }
+
+        #[ink::test]
+        fn test_complete_order_wrong_status_fails() {
+            let mut contract = PolkaPayEscrow::new(200);
+            
+            // Create order
+            ink::env::test::set_value_transferred::<ink::env::DefaultEnvironment>(1000);
+            let order_id = contract.create_order().unwrap();
+            
+            // Try to complete without payment sent
+            let result = contract.complete_order(order_id);
+            assert!(result.is_err());
+            assert_eq!(result.unwrap_err(), Error::InvalidStatus);
+        }
+
+        #[ink::test]
+        fn test_cancel_order_pending_works() {
+            let mut contract = PolkaPayEscrow::new(200);
+            let accounts = ink::env::test::default_accounts::<ink::env::DefaultEnvironment>();
+            
+            // Create order
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.alice);
+            ink::env::test::set_value_transferred::<ink::env::DefaultEnvironment>(1000);
+            let order_id = contract.create_order().unwrap();
+            
+            // Cancel order
+            let result = contract.cancel_order(order_id);
+            assert!(result.is_ok());
+            
+            // Verify status
+            let order = contract.get_order(order_id).unwrap();
+            assert_eq!(order.status, OrderStatus::Cancelled);
+        }
+
+        #[ink::test]
+        fn test_cancel_order_accepted_fails() {
+            let mut contract = PolkaPayEscrow::new(200);
+            let accounts = ink::env::test::default_accounts::<ink::env::DefaultEnvironment>();
+            
+            // Create order
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.alice);
+            ink::env::test::set_value_transferred::<ink::env::DefaultEnvironment>(1000);
+            let order_id = contract.create_order().unwrap();
+            
+            // Accept order
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.bob);
+            contract.accept_order(order_id).unwrap();
+            
+            // Try to cancel accepted order
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.alice);
+            let result = contract.cancel_order(order_id);
+            assert!(result.is_err());
+            assert_eq!(result.unwrap_err(), Error::InvalidStatus);
+        }
+
+        #[ink::test]
+        fn test_cancel_order_unauthorized_fails() {
+            let mut contract = PolkaPayEscrow::new(200);
+            let accounts = ink::env::test::default_accounts::<ink::env::DefaultEnvironment>();
+            
+            // Create order
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.alice);
+            ink::env::test::set_value_transferred::<ink::env::DefaultEnvironment>(1000);
+            let order_id = contract.create_order().unwrap();
+            
+            // Try to cancel from different account
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.bob);
+            let result = contract.cancel_order(order_id);
+            assert!(result.is_err());
+            assert_eq!(result.unwrap_err(), Error::Unauthorized);
+        }
+
+        #[ink::test]
+        fn test_get_order_works() {
+            let mut contract = PolkaPayEscrow::new(200);
+            
+            // Create order
+            ink::env::test::set_value_transferred::<ink::env::DefaultEnvironment>(1000);
+            let order_id = contract.create_order().unwrap();
+            
+            // Get order
+            let order = contract.get_order(order_id);
+            assert!(order.is_some());
+            
+            let order = order.unwrap();
+            assert_eq!(order.id, order_id);
+            assert_eq!(order.amount, 1000);
+        }
+
+        #[ink::test]
+        fn test_get_order_not_found() {
+            let contract = PolkaPayEscrow::new(200);
+            
+            let order = contract.get_order(999);
+            assert!(order.is_none());
+        }
+
+        #[ink::test]
+        fn test_get_balance_works() {
+            let mut contract = PolkaPayEscrow::new(200);
+            
+            // Create order to add balance
+            ink::env::test::set_value_transferred::<ink::env::DefaultEnvironment>(1000);
+            contract.create_order().unwrap();
+            
+            // Check balance
+            let balance = contract.get_balance();
+            assert!(balance > 0);
+        }
+
+        #[ink::test]
+        fn test_lp_fee_calculation() {
+            let mut contract = PolkaPayEscrow::new(200); // 2%
+            
+            // Create order with 10000
+            ink::env::test::set_value_transferred::<ink::env::DefaultEnvironment>(10000);
+            let order_id = contract.create_order().unwrap();
+            
+            let order = contract.get_order(order_id).unwrap();
+            assert_eq!(order.lp_fee, 200); // 2% of 10000
+            assert_eq!(order.amount, 10000);
+        }
+
+        #[ink::test]
+        fn test_multiple_orders() {
+            let mut contract = PolkaPayEscrow::new(200);
+            
+            // Create first order
+            ink::env::test::set_value_transferred::<ink::env::DefaultEnvironment>(1000);
+            let order_id1 = contract.create_order().unwrap();
+            assert_eq!(order_id1, 1);
+            
+            // Create second order
+            ink::env::test::set_value_transferred::<ink::env::DefaultEnvironment>(2000);
+            let order_id2 = contract.create_order().unwrap();
+            assert_eq!(order_id2, 2);
+            
+            // Verify both orders exist
+            assert!(contract.get_order(order_id1).is_some());
+            assert!(contract.get_order(order_id2).is_some());
+            
+            let order1 = contract.get_order(order_id1).unwrap();
+            let order2 = contract.get_order(order_id2).unwrap();
+            assert_eq!(order1.amount, 1000);
+            assert_eq!(order2.amount, 2000);
+        }
+    }
 }
 

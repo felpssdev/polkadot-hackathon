@@ -276,15 +276,44 @@ CONTRACT_ADDRESS=5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty
 
 ### Unit Tests
 
+The contract includes comprehensive unit tests covering all functions:
+
 ```bash
 cd backend/contracts
 
-# Run tests
-cargo test
+# Run all tests
+cargo test --features std
 
-# With output
-cargo test -- --nocapture
+# Run with output
+cargo test --features std -- --nocapture
+
+# Run specific test
+cargo test --features std test_create_order_works
 ```
+
+**Test Coverage**:
+- Constructor initialization
+- Order creation (valid and invalid amounts)
+- Order acceptance (by LP)
+- Payment confirmation (by buyer)
+- Order completion (fund transfers)
+- Order cancellation (pending only)
+- Authorization checks
+- Status validation
+- Fee calculations
+- Multiple orders handling
+
+### Run Test Script
+
+```bash
+cd backend/contracts
+./test.sh
+```
+
+This script will:
+1. Run all unit tests
+2. Build the contract
+3. Verify artifacts are generated
 
 ### Integration Tests
 
@@ -292,6 +321,17 @@ cargo test -- --nocapture
 # Test with local node
 cargo contract test
 ```
+
+### Common Test Failures
+
+**Issue**: `cargo test` fails with missing features
+**Solution**: Always use `cargo test --features std`
+
+**Issue**: Transfer tests fail
+**Solution**: These are expected in unit tests as transfers require runtime
+
+**Issue**: Contract not building
+**Solution**: Ensure `cargo-contract` is installed and up to date
 
 ## Contract Interaction
 

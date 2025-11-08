@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     contract_address: Optional[str] = None
     signer_seed: Optional[str] = None
     
+    # Contract
+    contract_metadata_path: str = "contracts/target/ink/metadata.json"
+    contract_wasm_path: str = "contracts/target/ink/polkapay_escrow.wasm"
+    
     # Redis
     redis_url: str = "redis://localhost:6379/0"
     

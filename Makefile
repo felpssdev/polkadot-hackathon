@@ -70,6 +70,13 @@ dev-backend: ## Roda backend localmente (sem Docker)
 dev-frontend: ## Roda frontend localmente (sem Docker)
 	cd frontend && pnpm run dev
 
-compile-contract: ## Compila o smart contract
+test-contract: ## Run smart contract tests
+	cd backend/contracts && cargo test --features std
+
+build-contract: ## Build smart contract
+	cd backend/contracts && cargo contract build --release
+	@echo "Contract artifacts in backend/contracts/target/ink/"
+
+compile-contract: ## Compila o smart contract (alias for build-contract)
 	cd backend/contracts && cargo contract build --release
 

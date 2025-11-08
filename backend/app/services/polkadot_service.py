@@ -8,6 +8,8 @@ except ImportError:
 from substrateinterface.exceptions import SubstrateRequestException
 from typing import Optional, Dict, Any
 import logging
+import json
+import os
 
 from app.config import settings
 
@@ -20,6 +22,8 @@ class PolkadotService:
     def __init__(self):
         self.substrate: Optional[SubstrateInterface] = None
         self.contract: Optional[ContractInstance] = None
+        self.contract_metadata: Optional[Dict] = None
+        self.contract_address: Optional[str] = None
         self.keypair: Optional[Keypair] = None
         
     def connect(self):
@@ -175,6 +179,62 @@ class PolkadotService:
         except Exception as e:
             logger.error(f"Error verifying signature: {e}")
             return False
+    
+    def load_contract(self, contract_address: str, metadata_path: str) -> bool:
+        """Load contract instance from metadata"""
+        try:
+            # Check if metadata file exists
+            if not os.path.exists(metadata_path):
+                logger.warning(f"Contract metadata not found at {metadata_path}")
+                return False
+            
+            # Load metadata
+            with open(metadata_path, 'r') as f:
+                metadata = json.load(f)
+            
+            # Store for future use
+            self.contract_metadata = metadata
+            self.contract_address = contract_address
+            
+            logger.info(f"Contract metadata loaded for {contract_address}")
+            logger.info(f"Metadata path: {metadata_path}")
+            
+            # If substrate is connected and ContractInstance is available, create instance
+            if self.substrate and ContractInstance:
+                try:
+                    self.contract = ContractInstance.create_from_address(
+                        contract_address=contract_address,
+                        metadata_file=metadata_path,
+                        substrate=self.substrate
+                    )
+                    logger.info("Contract instance created successfully")
+                except Exception as e:
+                    logger.warning(f"Could not create contract instance: {e}")
+                    logger.info("Contract metadata loaded but instance not created")
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to load contract: {e}")
+            return False
+    
+    def estimate_gas(self, method: str, args: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Estimate gas for contract method call"""
+        try:
+            if not self.contract or not self.keypair:
+                logger.warning("Contract or keypair not initialized for gas estimation")
+                return None
+            
+            # Placeholder for gas estimation
+            # In real implementation, would call contract.read() to estimate
+            return {
+                "ref_time": 10000000000,
+                "proof_size": 1000000
+            }
+            
+        except Exception as e:
+            logger.error(f"Error estimating gas: {e}")
+            return None
 
 
 # Global instance
