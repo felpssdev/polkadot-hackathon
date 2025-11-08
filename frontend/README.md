@@ -4,7 +4,7 @@ Next.js frontend with 8-bit themed UI.
 
 ## Documentation
 
-Complete frontend documentation available at [docs/frontend/](../docs/frontend/)
+Complete frontend documentation available at [docs/](../docs/)
 
 ## Quick Start
 
@@ -20,9 +20,8 @@ pnpm run dev
 
 ## Links
 
-- [Frontend Documentation](../docs/frontend/README.md)
-- [Wallet Integration](../docs/frontend/wallet-integration.md)
-- [Quick Start Guide](../docs/getting-started/quick-start.md)
+- [Wallet Integration](../docs/wallet-integration.md)
+- [Quick Start Guide](../docs/quick-start.md)
 
 ## Access
 

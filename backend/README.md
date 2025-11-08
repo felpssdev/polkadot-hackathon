@@ -4,7 +4,7 @@ FastAPI backend for PolkaPay P2P platform.
 
 ## Documentation
 
-Complete backend documentation available at [docs/backend/](../docs/backend/)
+Complete backend documentation available at [docs/](../docs/)
 
 ## Quick Start
 
@@ -20,10 +20,9 @@ uvicorn app.main:app --reload
 
 ## Links
 
-- [Backend Documentation](../docs/backend/README.md)
-- [API Reference](../docs/backend/api-reference.md)
-- [Smart Contracts](../docs/backend/smart-contracts.md)
-- [Quick Start Guide](../docs/getting-started/quick-start.md)
+- [API Reference](../docs/api-reference.md)
+- [Smart Contracts](../docs/smart-contracts.md)
+- [Quick Start Guide](../docs/quick-start.md)
 
 ## Endpoints
 
