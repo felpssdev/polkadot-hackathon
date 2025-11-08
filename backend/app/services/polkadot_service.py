@@ -71,103 +71,419 @@ class PolkadotService:
             logger.error(f"Error getting balance: {e}")
             return 0.0
     
-    def create_order(self, dot_amount: float) -> Optional[Dict[str, Any]]:
-        """Create order on smart contract"""
+    def create_order(self, order_type: str, dot_amount: float) -> Optional[Dict[str, Any]]:
+        """Create order on smart contract
+        
+        Args:
+            order_type: "Sell" or "Buy"
+            dot_amount: Amount of DOT for the order
+            
+        Returns:
+            Dict with order_id, tx_hash, block_number or None on failure
+        """
         try:
             if not self.substrate or not self.keypair:
                 logger.error("Not connected or no keypair")
                 return None
             
-            # Convert DOT to Planck
+            if not self.contract:
+                logger.error("Contract not loaded")
+                return None
+            
+            # Convert order type to enum (0=Sell, 1=Buy)
+            order_type_enum = 0 if order_type.lower() == "sell" else 1
+            
+            # Convert DOT to Planck (10^10 for Rococo)
             amount_planck = int(dot_amount * (10 ** 10))
             
-            # Call contract (placeholder - needs actual contract instance)
-            # This is a simplified version
-            logger.info(f"Creating order for {dot_amount} DOT")
+            # For Sell orders, send DOT as value; for Buy orders, value=0
+            value = amount_planck if order_type.lower() == "sell" else 0
             
-            # TODO: Actual contract call
-            # result = self.contract.exec(
-            #     keypair=self.keypair,
-            #     method='create_order',
-            #     args={},
-            #     value=amount_planck
-            # )
+            logger.info(f"Creating {order_type} order for {dot_amount} DOT (value: {value} Planck)")
             
-            return {
-                "order_id": 1,  # Mock
-                "tx_hash": "0x123...",
-                "block_number": 12345
+            # Execute contract call
+            gas_limit = {
+                'ref_time': 10000000000,  # 10 billion
+                'proof_size': 1000000      # 1 MB
             }
             
+            receipt = self.contract.exec(
+                keypair=self.keypair,
+                method='create_order',
+                args={'order_type': order_type_enum},
+                value=value,
+                gas_limit=gas_limit
+            )
+            
+            if receipt.is_success:
+                # Extract order_id from contract result
+                # The contract returns the order_id as u32
+                order_id = receipt.contract_result_data
+                
+                logger.info(f"Order created successfully: ID={order_id}, TX={receipt.extrinsic_hash}")
+                
+                return {
+                    "order_id": order_id,
+                    "tx_hash": receipt.extrinsic_hash,
+                    "block_number": receipt.block_number
+                }
+            else:
+                logger.error(f"Contract call failed: {receipt.error_message}")
+                return None
+            
         except Exception as e:
-            logger.error(f"Error creating order: {e}")
+            logger.error(f"Error creating order: {e}", exc_info=True)
             return None
     
     def accept_order(self, order_id: int) -> Optional[Dict[str, Any]]:
-        """Accept order on smart contract"""
+        """Accept Sell order on smart contract (LP doesn't deposit DOT)
+        
+        Args:
+            order_id: Order ID to accept
+            
+        Returns:
+            Dict with tx_hash, block_number or None on failure
+        """
         try:
             if not self.substrate or not self.keypair:
+                logger.error("Not connected or no keypair")
                 return None
             
-            logger.info(f"Accepting order {order_id}")
+            if not self.contract:
+                logger.error("Contract not loaded")
+                return None
             
-            # TODO: Actual contract call
-            # result = self.contract.exec(
-            #     keypair=self.keypair,
-            #     method='accept_order',
-            #     args={'order_id': order_id}
-            # )
+            logger.info(f"Accepting Sell order {order_id}")
             
-            return {
-                "tx_hash": "0x456...",
-                "block_number": 12346
+            gas_limit = {
+                'ref_time': 10000000000,
+                'proof_size': 1000000
             }
             
+            receipt = self.contract.exec(
+                keypair=self.keypair,
+                method='accept_order',
+                args={'order_id': order_id},
+                value=0,  # No DOT deposit for Sell orders
+                gas_limit=gas_limit
+            )
+            
+            if receipt.is_success:
+                logger.info(f"Order {order_id} accepted successfully, TX={receipt.extrinsic_hash}")
+                return {
+                    "tx_hash": receipt.extrinsic_hash,
+                    "block_number": receipt.block_number
+                }
+            else:
+                logger.error(f"Contract call failed: {receipt.error_message}")
+                return None
+            
         except Exception as e:
-            logger.error(f"Error accepting order: {e}")
+            logger.error(f"Error accepting order: {e}", exc_info=True)
+            return None
+    
+    def accept_buy_order(self, order_id: int, dot_amount: float) -> Optional[Dict[str, Any]]:
+        """Accept Buy order on smart contract (LP deposits DOT)
+        
+        Args:
+            order_id: Order ID to accept
+            dot_amount: Amount of DOT to deposit
+            
+        Returns:
+            Dict with tx_hash, block_number or None on failure
+        """
+        try:
+            if not self.substrate or not self.keypair:
+                logger.error("Not connected or no keypair")
+                return None
+            
+            if not self.contract:
+                logger.error("Contract not loaded")
+                return None
+            
+            # Convert DOT to Planck
+            amount_planck = int(dot_amount * (10 ** 10))
+            
+            logger.info(f"Accepting Buy order {order_id} with {dot_amount} DOT deposit")
+            
+            gas_limit = {
+                'ref_time': 10000000000,
+                'proof_size': 1000000
+            }
+            
+            receipt = self.contract.exec(
+                keypair=self.keypair,
+                method='accept_buy_order',
+                args={'order_id': order_id},
+                value=amount_planck,  # LP deposits DOT for Buy orders
+                gas_limit=gas_limit
+            )
+            
+            if receipt.is_success:
+                logger.info(f"Buy order {order_id} accepted successfully, TX={receipt.extrinsic_hash}")
+                return {
+                    "tx_hash": receipt.extrinsic_hash,
+                    "block_number": receipt.block_number
+                }
+            else:
+                logger.error(f"Contract call failed: {receipt.error_message}")
+                return None
+            
+        except Exception as e:
+            logger.error(f"Error accepting buy order: {e}", exc_info=True)
+            return None
+    
+    def confirm_payment_sent(self, order_id: int) -> Optional[Dict[str, Any]]:
+        """Mark payment as sent on smart contract
+        
+        Args:
+            order_id: Order ID to update
+            
+        Returns:
+            Dict with tx_hash, block_number or None on failure
+        """
+        try:
+            if not self.substrate or not self.keypair:
+                logger.error("Not connected or no keypair")
+                return None
+            
+            if not self.contract:
+                logger.error("Contract not loaded")
+                return None
+            
+            logger.info(f"Confirming payment sent for order {order_id}")
+            
+            gas_limit = {
+                'ref_time': 10000000000,
+                'proof_size': 1000000
+            }
+            
+            receipt = self.contract.exec(
+                keypair=self.keypair,
+                method='confirm_payment_sent',
+                args={'order_id': order_id},
+                value=0,
+                gas_limit=gas_limit
+            )
+            
+            if receipt.is_success:
+                logger.info(f"Payment confirmed for order {order_id}, TX={receipt.extrinsic_hash}")
+                return {
+                    "tx_hash": receipt.extrinsic_hash,
+                    "block_number": receipt.block_number
+                }
+            else:
+                logger.error(f"Contract call failed: {receipt.error_message}")
+                return None
+            
+        except Exception as e:
+            logger.error(f"Error confirming payment: {e}", exc_info=True)
             return None
     
     def complete_order(self, order_id: int) -> Optional[Dict[str, Any]]:
-        """Complete order and release funds"""
+        """Complete order and release funds
+        
+        Args:
+            order_id: Order ID to complete
+            
+        Returns:
+            Dict with tx_hash, block_number or None on failure
+        """
         try:
             if not self.substrate or not self.keypair:
+                logger.error("Not connected or no keypair")
+                return None
+            
+            if not self.contract:
+                logger.error("Contract not loaded")
                 return None
             
             logger.info(f"Completing order {order_id}")
             
-            # TODO: Actual contract call
-            # result = self.contract.exec(
-            #     keypair=self.keypair,
-            #     method='complete_order',
-            #     args={'order_id': order_id}
-            # )
-            
-            return {
-                "tx_hash": "0x789...",
-                "block_number": 12347
+            gas_limit = {
+                'ref_time': 10000000000,
+                'proof_size': 1000000
             }
             
+            receipt = self.contract.exec(
+                keypair=self.keypair,
+                method='complete_order',
+                args={'order_id': order_id},
+                value=0,
+                gas_limit=gas_limit
+            )
+            
+            if receipt.is_success:
+                logger.info(f"Order {order_id} completed successfully, TX={receipt.extrinsic_hash}")
+                return {
+                    "tx_hash": receipt.extrinsic_hash,
+                    "block_number": receipt.block_number
+                }
+            else:
+                logger.error(f"Contract call failed: {receipt.error_message}")
+                return None
+            
         except Exception as e:
-            logger.error(f"Error completing order: {e}")
+            logger.error(f"Error completing order: {e}", exc_info=True)
             return None
     
     def cancel_order(self, order_id: int) -> Optional[Dict[str, Any]]:
-        """Cancel order and refund"""
+        """Cancel order and refund
+        
+        Args:
+            order_id: Order ID to cancel
+            
+        Returns:
+            Dict with tx_hash, block_number or None on failure
+        """
         try:
             if not self.substrate or not self.keypair:
+                logger.error("Not connected or no keypair")
+                return None
+            
+            if not self.contract:
+                logger.error("Contract not loaded")
                 return None
             
             logger.info(f"Cancelling order {order_id}")
             
-            # TODO: Actual contract call
-            
-            return {
-                "tx_hash": "0xabc...",
-                "block_number": 12348
+            gas_limit = {
+                'ref_time': 10000000000,
+                'proof_size': 1000000
             }
             
+            receipt = self.contract.exec(
+                keypair=self.keypair,
+                method='cancel_order',
+                args={'order_id': order_id},
+                value=0,
+                gas_limit=gas_limit
+            )
+            
+            if receipt.is_success:
+                logger.info(f"Order {order_id} cancelled successfully, TX={receipt.extrinsic_hash}")
+                return {
+                    "tx_hash": receipt.extrinsic_hash,
+                    "block_number": receipt.block_number
+                }
+            else:
+                logger.error(f"Contract call failed: {receipt.error_message}")
+                return None
+            
         except Exception as e:
-            logger.error(f"Error cancelling order: {e}")
+            logger.error(f"Error cancelling order: {e}", exc_info=True)
+            return None
+    
+    def create_dispute(self, order_id: int) -> Optional[Dict[str, Any]]:
+        """Create dispute for an order
+        
+        Args:
+            order_id: Order ID to dispute
+            
+        Returns:
+            Dict with tx_hash, block_number or None on failure
+        """
+        try:
+            if not self.substrate or not self.keypair:
+                logger.error("Not connected or no keypair")
+                return None
+            
+            if not self.contract:
+                logger.error("Contract not loaded")
+                return None
+            
+            logger.info(f"Creating dispute for order {order_id}")
+            
+            gas_limit = {
+                'ref_time': 10000000000,
+                'proof_size': 1000000
+            }
+            
+            receipt = self.contract.exec(
+                keypair=self.keypair,
+                method='create_dispute',
+                args={'order_id': order_id},
+                value=0,
+                gas_limit=gas_limit
+            )
+            
+            if receipt.is_success:
+                logger.info(f"Dispute created for order {order_id}, TX={receipt.extrinsic_hash}")
+                return {
+                    "tx_hash": receipt.extrinsic_hash,
+                    "block_number": receipt.block_number
+                }
+            else:
+                logger.error(f"Contract call failed: {receipt.error_message}")
+                return None
+            
+        except Exception as e:
+            logger.error(f"Error creating dispute: {e}", exc_info=True)
+            return None
+    
+    def get_order(self, order_id: int) -> Optional[Dict[str, Any]]:
+        """Get order details from blockchain (read-only)
+        
+        Args:
+            order_id: Order ID to query
+            
+        Returns:
+            Dict with order details or None on failure
+        """
+        try:
+            if not self.substrate:
+                logger.error("Not connected")
+                return None
+            
+            if not self.contract:
+                logger.error("Contract not loaded")
+                return None
+            
+            logger.info(f"Querying order {order_id} from blockchain")
+            
+            # Read-only call (doesn't require keypair or gas)
+            result = self.contract.read(
+                keypair=self.keypair,  # Can be None for read calls
+                method='get_order',
+                args={'order_id': order_id}
+            )
+            
+            if result.contract_result_data:
+                order = result.contract_result_data
+                
+                # Convert Planck to DOT
+                amount_dot = order.get('amount', 0) / (10 ** 10)
+                lp_fee_dot = order.get('lp_fee', 0) / (10 ** 10)
+                
+                # Map status enum to string
+                status_map = {
+                    0: "Pending",
+                    1: "Accepted",
+                    2: "PaymentSent",
+                    3: "Completed",
+                    4: "Cancelled",
+                    5: "Disputed"
+                }
+                
+                # Map order type enum to string
+                order_type = "Sell" if order.get('order_type', 0) == 0 else "Buy"
+                
+                return {
+                    "id": order.get('id'),
+                    "order_type": order_type,
+                    "buyer": order.get('buyer'),
+                    "seller": order.get('seller'),
+                    "amount": amount_dot,
+                    "lp_fee": lp_fee_dot,
+                    "status": status_map.get(order.get('status'), "Unknown"),
+                    "created_at": order.get('created_at')
+                }
+            else:
+                logger.warning(f"Order {order_id} not found on blockchain")
+                return None
+            
+        except Exception as e:
+            logger.error(f"Error getting order from blockchain: {e}", exc_info=True)
             return None
     
     def verify_signature(self, wallet_address: str, message: str, signature: str) -> bool:
