@@ -62,13 +62,13 @@ install-backend: ## Instala dependências do backend localmente
 	cd backend && pip install -r requirements.txt
 
 install-frontend: ## Instala dependências do frontend localmente
-	cd frontend && npm install
+	cd frontend && pnpm install
 
 dev-backend: ## Roda backend localmente (sem Docker)
 	cd backend && uvicorn app.main:app --reload
 
 dev-frontend: ## Roda frontend localmente (sem Docker)
-	cd frontend && npm run dev
+	cd frontend && pnpm run dev
 
 compile-contract: ## Compila o smart contract
 	cd backend/contracts && cargo contract build --release
