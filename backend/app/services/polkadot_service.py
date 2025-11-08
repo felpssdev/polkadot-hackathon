@@ -421,6 +421,54 @@ class PolkadotService:
             logger.error(f"Error creating dispute: {e}", exc_info=True)
             return None
     
+    def resolve_dispute(self, order_id: int, favor_buyer: bool) -> Optional[Dict[str, Any]]:
+        """Resolve dispute (admin only)
+        
+        Args:
+            order_id: Order ID to resolve
+            favor_buyer: True to favor buyer, False to favor seller
+            
+        Returns:
+            Dict with tx_hash, block_number or None on failure
+        """
+        try:
+            if not self.substrate or not self.keypair:
+                logger.error("Not connected or no keypair")
+                return None
+            
+            if not self.contract:
+                logger.error("Contract not loaded")
+                return None
+            
+            logger.info(f"Resolving dispute for order {order_id}, favor_buyer={favor_buyer}")
+            
+            gas_limit = {
+                'ref_time': 10000000000,
+                'proof_size': 1000000
+            }
+            
+            receipt = self.contract.exec(
+                keypair=self.keypair,
+                method='resolve_dispute',
+                args={'order_id': order_id, 'favor_buyer': favor_buyer},
+                value=0,
+                gas_limit=gas_limit
+            )
+            
+            if receipt.is_success:
+                logger.info(f"Dispute resolved for order {order_id}, TX={receipt.extrinsic_hash}")
+                return {
+                    "tx_hash": receipt.extrinsic_hash,
+                    "block_number": receipt.block_number
+                }
+            else:
+                logger.error(f"Contract call failed: {receipt.error_message}")
+                return None
+            
+        except Exception as e:
+            logger.error(f"Error resolving dispute: {e}", exc_info=True)
+            return None
+    
     def get_order(self, order_id: int) -> Optional[Dict[str, Any]]:
         """Get order details from blockchain (read-only)
         

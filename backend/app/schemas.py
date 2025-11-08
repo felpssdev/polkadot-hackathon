@@ -72,7 +72,8 @@ class OrderResponse(BaseModel):
     pix_key: Optional[str]
     pix_qr_code: Optional[str]
     pix_txid: Optional[str]
-    contract_order_id: Optional[int]
+    blockchain_order_id: Optional[int]
+    blockchain_tx_hash: Optional[str]
     created_at: datetime
     expires_at: Optional[datetime]
     

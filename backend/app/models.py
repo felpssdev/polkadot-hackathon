@@ -116,9 +116,8 @@ class Order(Base):
     pix_payment_proof = Column(String, nullable=True)
     
     # Blockchain
-    contract_order_id = Column(Integer, nullable=True)
-    escrow_tx_hash = Column(String, nullable=True)
-    release_tx_hash = Column(String, nullable=True)
+    blockchain_order_id = Column(Integer, nullable=True, index=True)
+    blockchain_tx_hash = Column(String(255), nullable=True)
     
     # Metadata
     notes = Column(String, nullable=True)
@@ -129,6 +128,7 @@ class Order(Base):
     accepted_at = Column(DateTime(timezone=True), nullable=True)
     payment_sent_at = Column(DateTime(timezone=True), nullable=True)
     completed_at = Column(DateTime(timezone=True), nullable=True)
+    cancelled_at = Column(DateTime(timezone=True), nullable=True)
     expires_at = Column(DateTime(timezone=True), nullable=True)
     
     # Relationships
