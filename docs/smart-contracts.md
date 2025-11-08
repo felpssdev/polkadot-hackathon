@@ -457,6 +457,99 @@ Track:
 - Total volume
 - Fee collected
 
+## Backend Integration
+
+### PolkadotService Class
+
+The backend interacts with the smart contract through the `PolkadotService` class located in `backend/app/services/polkadot_service.py`.
+
+**Key Methods**:
+
+```python
+# Create order on blockchain
+result = polkadot_service.create_order(
+    order_type="Sell",  # or "Buy"
+    dot_amount=10.0
+)
+# Returns: { "order_id": 1, "tx_hash": "0x...", "block_number": 12345 }
+
+# Accept sell order (LP)
+result = polkadot_service.accept_order(order_id=1)
+
+# Accept buy order (LP deposits DOT)
+result = polkadot_service.accept_buy_order(order_id=1, dot_amount=10.0)
+
+# Confirm payment sent
+result = polkadot_service.confirm_payment_sent(order_id=1)
+
+# Complete order (release funds)
+result = polkadot_service.complete_order(order_id=1)
+
+# Cancel order (refund)
+result = polkadot_service.cancel_order(order_id=1)
+
+# Get order details (read-only)
+order = polkadot_service.get_order(order_id=1)
+# Returns: { "id": 1, "order_type": "Sell", "buyer": "5G...", "amount": 10.0, ... }
+```
+
+### Configuration
+
+Required environment variables in `backend/.env`:
+
+```bash
+POLKADOT_NODE_URL=wss://rococo-contracts-rpc.polkadot.io
+CONTRACT_ADDRESS=5GxxYyyy...  # From deployment
+CONTRACT_METADATA_PATH=./contracts/target/ink/polkapay_escrow.json
+SIGNER_SEED=word1 word2 ... word12  # Mnemonic phrase
+```
+
+### Gas Estimation
+
+The backend automatically estimates gas for each transaction:
+
+```python
+gas_limit = {
+    'ref_time': 10000000000,  # 10 billion
+    'proof_size': 1000000      # 1 MB
+}
+```
+
+Adjust these values if transactions fail due to insufficient gas.
+
+### Error Handling
+
+The backend maps contract errors to user-friendly messages:
+
+- `InsufficientBalance` → "Insufficient DOT balance"
+- `OrderNotFound` → "Order not found"
+- `Unauthorized` → "You don't have permission for this action"
+- `InvalidOrderStatus` → "Order is not in the correct status"
+- `ContractPaused` → "System is under maintenance"
+
+### Transaction Receipt
+
+Every successful transaction returns a receipt with:
+
+```python
+{
+    "tx_hash": "0x1234...",           # Transaction hash
+    "block_number": 12345,             # Block number
+    "contract_result_data": ...,       # Return value from contract
+    "is_success": True,                # Success flag
+    "gas_consumed": { ... }            # Gas usage
+}
+```
+
+### Synchronization
+
+The backend maintains synchronization between database and blockchain:
+
+1. **Create Order**: Save `blockchain_order_id` and `blockchain_tx_hash` in DB
+2. **Status Updates**: Update DB status after each blockchain transaction
+3. **Verification**: Periodically verify DB status matches blockchain state
+4. **Recovery**: Handle cases where transactions succeed on blockchain but DB update fails
+
 ## Troubleshooting
 
 ### Compilation Errors

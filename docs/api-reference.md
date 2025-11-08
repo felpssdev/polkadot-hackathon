@@ -118,7 +118,8 @@ curl -X POST http://localhost:8000/api/v1/orders/ \
   "pix_key": "user@email.com",
   "pix_qr_code": null,
   "pix_txid": null,
-  "contract_order_id": 1,
+  "blockchain_order_id": 1,
+  "blockchain_tx_hash": "0xabc123...",
   "created_at": "2024-10-03T10:00:00Z",
   "expires_at": "2024-10-03T10:15:00Z"
 }
@@ -252,17 +253,105 @@ User confirms PIX payment received.
 
 ### Complete Order
 
-System completes the order.
+LP or User completes the order after payment confirmation.
 
 **Endpoint**: `POST /orders/{id}/complete`
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Description**: 
+- For Sell orders: LP calls this after confirming PIX received
+- For Buy orders: User calls this after confirming PIX sent
+- Triggers blockchain transaction to release DOT
 
 **Response**:
 ```json
 {
   "id": 1,
   "status": "completed",
+  "blockchain_tx_hash": "0x1234...",
   "completed_at": "2024-10-03T10:30:00Z",
   ...
+}
+```
+
+### Cancel Order
+
+User cancels an order before it's accepted.
+
+**Endpoint**: `POST /orders/{id}/cancel`
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Description**: 
+- Only available for orders in PENDING status
+- Refunds DOT to user (for Sell orders)
+- Triggers blockchain transaction
+
+**Response**:
+```json
+{
+  "id": 1,
+  "status": "cancelled",
+  "blockchain_tx_hash": "0x5678...",
+  "cancelled_at": "2024-10-03T10:05:00Z"
+}
+```
+
+### Create Dispute
+
+User or LP creates a dispute for an order.
+
+**Endpoint**: `POST /orders/{id}/dispute`
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Request**:
+```json
+{
+  "reason": "Payment not received",
+  "evidence": "https://example.com/evidence.jpg"
+}
+```
+
+**Description**: 
+- Only available for orders in PAYMENT_SENT status
+- Triggers blockchain transaction to mark dispute
+- Admin must resolve the dispute
+
+**Response**:
+```json
+{
+  "id": 1,
+  "status": "disputed",
+  "blockchain_tx_hash": "0x9abc...",
+  "dispute_created_at": "2024-10-03T10:20:00Z"
+}
+```
+
+### Get Blockchain Order Details
+
+Get order details directly from blockchain.
+
+**Endpoint**: `GET /orders/{id}/blockchain`
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Description**: 
+- Queries smart contract for order details
+- Useful for verification and debugging
+
+**Response**:
+```json
+{
+  "blockchain_order_id": 1,
+  "order_type": "Sell",
+  "buyer": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+  "seller": "5HpG9w8EBLe5XCrbczpwq5TSXvedjrBGCwqxK1iQ7qUsSWFc",
+  "amount": 2.0,
+  "lp_fee": 0.06,
+  "status": "Completed",
+  "created_at": 1696329600
 }
 ```
 

@@ -1,469 +1,700 @@
-# Wallet Integration
+# Wallet Integration Guide
 
-Complete guide for Polkadot wallet integration.
+Complete guide for Polkadot wallet integration in PolkaPay frontend.
 
 ## Overview
 
-PolkaPay integrates with Polkadot wallet extensions for non-custodial authentication and transaction signing.
+PolkaPay uses Polkadot.js Extension for non-custodial wallet authentication. Users maintain full control of their private keys.
 
-## Supported Wallets
+**Supported Wallets**:
+- SubWallet
+- Polkadot.js Extension
+- Talisman
 
-| Wallet | Desktop | Mobile | Website |
-|--------|---------|--------|---------|
-| SubWallet | Yes | Yes | https://subwallet.app |
-| Polkadot.js | Yes | No | https://polkadot.js.org/extension/ |
-| Talisman | Yes | No | https://talisman.xyz |
+## Architecture
 
-## Installation
-
-### Dependencies
-
-```bash
-cd frontend
-pnpm install
+```
+┌─────────────────┐
+│   User Browser  │
+│                 │
+│  ┌───────────┐  │
+│  │  PolkaPay │  │
+│  │  Frontend │  │
+│  └─────┬─────┘  │
+│        │        │
+│  ┌─────▼─────┐  │
+│  │  Wallet   │  │
+│  │ Extension │  │
+│  └───────────┘  │
+└─────────────────┘
 ```
 
-Required packages:
-- `@polkadot/extension-dapp` - Wallet connection
-- `@polkadot/api` - Polkadot API
-- `@polkadot/util` - Utilities
-- `@polkadot/util-crypto` - Cryptography
+**Communication Flow**:
+1. Frontend requests wallet connection
+2. Extension shows authorization popup
+3. User approves/rejects
+4. Extension returns accounts
+5. Frontend stores selected account
+6. User signs messages/transactions
 
-### Wallet Extension
+## Implementation
 
-#### SubWallet (Recommended)
+### WalletContext
 
-**Chrome/Brave/Edge**:
-1. Visit https://subwallet.app/download.html
-2. Click "Install for Chrome"
-3. Add to browser
+**File**: `frontend/src/contexts/WalletContext.tsx`
 
-**Firefox**:
-1. Visit https://subwallet.app/download.html
-2. Click "Install for Firefox"
-3. Follow instructions
+The `WalletContext` provides wallet state and actions throughout the app.
 
-**Mobile**:
-- iOS: App Store
-- Android: Google Play
-
-## Setup
-
-### Create Wallet Account
-
-1. Open SubWallet extension
-2. Click "Create a new account"
-3. **Save seed phrase** (12-24 words)
-   - Never share
-   - Store securely
-   - Required for recovery
-4. Set password
-5. Account created
-
-### Import Existing Account
-
-1. Open SubWallet
-2. Click "Import an account"
-3. Enter seed phrase
-4. Set password
-5. Account imported
-
-## Usage
-
-### Wallet Context
-
-The `WalletProvider` wraps the application in `app/layout.tsx`:
-
+**State**:
 ```typescript
-import { WalletProvider } from '@/contexts/WalletContext'
+interface WalletContextType {
+  // State
+  isConnected: boolean
+  isConnecting: boolean
+  accounts: InjectedAccountWithMeta[]
+  selectedAccount: InjectedAccountWithMeta | null
+  installedWallets: WalletExtension[]
+  error: string | null
 
-export default function RootLayout({ children }) {
-  return (
-    <html>
-      <body>
-        <WalletProvider>
-          {children}
-        </WalletProvider>
-      </body>
-    </html>
-  )
+  // Actions
+  connect: () => Promise<boolean>
+  disconnect: () => void
+  selectAccount: (account: InjectedAccountWithMeta) => void
+  sign: (message: string) => Promise<string | null>
+
+  // Utils
+  getFormattedAddress: (length?: number) => string
 }
 ```
 
-### useWallet Hook
-
+**Usage**:
 ```typescript
 import { useWallet } from '@/contexts/WalletContext'
 
 function MyComponent() {
-  const {
-    isConnected,
-    isConnecting,
-    selectedAccount,
-    accounts,
-    connect,
-    disconnect,
-    selectAccount,
-    sign,
-    installedWallets,
-    error
-  } = useWallet()
+  const { isConnected, selectedAccount, connect } = useWallet()
 
   return (
     <div>
       {isConnected ? (
-        <div>
-          <p>Connected: {selectedAccount?.address}</p>
-          <button onClick={disconnect}>Disconnect</button>
-        </div>
+        <p>Connected: {selectedAccount?.address}</p>
       ) : (
-        <button onClick={connect} disabled={isConnecting}>
-          {isConnecting ? 'Connecting...' : 'Connect Wallet'}
-        </button>
+        <button onClick={connect}>Connect Wallet</button>
       )}
     </div>
   )
 }
 ```
 
-## Authentication Flow
+### Polkadot Utilities
 
-### 1. Detect Wallets
+**File**: `frontend/src/lib/polkadot.ts`
 
-```typescript
-const { installedWallets } = useWallet()
+Utility functions for wallet interactions.
 
-installedWallets.map(wallet => (
-  wallet.installed && (
-    <div key={wallet.name}>
-      {wallet.icon} {wallet.displayName}
-    </div>
-  )
-))
-```
-
-### 2. Connect Wallet
+#### Initialize Extension
 
 ```typescript
-const { connect } = useWallet()
+import { web3Enable } from '@polkadot/extension-dapp'
 
-// User clicks connect button
-await connect()
-```
+export async function initializePolkadot(appName: string = 'PolkaPay'): Promise<boolean> {
+  if (typeof window === 'undefined') return false
 
-Process:
-1. Call `web3Enable('PolkaPay')`
-2. Request user permission (popup)
-3. Get accounts with `web3Accounts()`
-4. Save to state and localStorage
-
-### 3. Select Account
-
-If multiple accounts exist:
-
-```typescript
-const { accounts, selectAccount } = useWallet()
-
-accounts.map(account => (
-  <button onClick={() => selectAccount(account)}>
-    {account.name} - {account.address}
-  </button>
-))
-```
-
-### 4. Sign Message
-
-```typescript
-const { sign, selectedAccount } = useWallet()
-
-async function authenticateWithBackend() {
-  const message = 'Login to PolkaPay'
-  const signature = await sign(message)
-  
-  if (signature) {
-    const response = await fetch('http://localhost:8000/api/v1/auth/wallet', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        wallet_address: selectedAccount.address,
-        message,
-        signature
-      })
-    })
-    
-    const data = await response.json()
-    // Store JWT token
-    localStorage.setItem('jwt_token', data.access_token)
+  try {
+    const extensions = await web3Enable(appName)
+    return extensions.length > 0
+  } catch (error) {
+    console.error('Error initializing Polkadot extension:', error)
+    return false
   }
 }
 ```
 
-## Features
-
-### Wallet Detection
-
-Automatically detects installed wallets:
+#### Get Accounts
 
 ```typescript
-const { installedWallets } = useWallet()
+import { web3Accounts } from '@polkadot/extension-dapp'
 
-// Returns array of wallets with 'installed' flag
+export async function getAccounts(): Promise<InjectedAccountWithMeta[]> {
+  if (typeof window === 'undefined') return []
+
+  try {
+    const accounts = await web3Accounts()
+    return accounts
+  } catch (error) {
+    console.error('Error getting accounts:', error)
+    return []
+  }
+}
+```
+
+#### Sign Message
+
+```typescript
+import { web3FromAddress } from '@polkadot/extension-dapp'
+
+export async function signMessage(
+  address: string,
+  message: string
+): Promise<string | null> {
+  if (typeof window === 'undefined') return null
+
+  try {
+    const injector = await web3FromAddress(address)
+
+    if (!injector.signer.signRaw) {
+      throw new Error('Signer does not support signRaw')
+    }
+
+    const { signature } = await injector.signer.signRaw({
+      address,
+      data: message,
+      type: 'bytes',
+    })
+
+    return signature
+  } catch (error) {
+    console.error('Error signing message:', error)
+    return null
+  }
+}
+```
+
+## Connection Flow
+
+### 1. Check Installed Wallets
+
+```typescript
+const checkWallets = async () => {
+  const wallets = await checkInstalledWallets()
+  setInstalledWallets(wallets)
+}
+```
+
+**Result**:
+```typescript
 [
-  { name: 'subwallet-js', displayName: 'SubWallet', icon: '🌊', installed: true },
-  { name: 'polkadot-js', displayName: 'Polkadot.js', icon: '⚙️', installed: false },
-  { name: 'talisman', displayName: 'Talisman', icon: '🔮', installed: false }
+  { name: 'subwallet-js', displayName: 'SubWallet', installed: true },
+  { name: 'polkadot-js', displayName: 'Polkadot.js', installed: false },
+  { name: 'talisman', displayName: 'Talisman', installed: false }
 ]
 ```
 
-### Connection Persistence
-
-State persisted in localStorage:
+### 2. Request Connection
 
 ```typescript
-// Automatically reconnects on page load
-useEffect(() => {
-  const savedAddress = localStorage.getItem('selectedWalletAddress')
-  if (savedAddress) {
-    reconnect(savedAddress)
+const connect = async (): Promise<boolean> => {
+  setIsConnecting(true)
+  setError(null)
+
+  try {
+    // Initialize extension
+    const initialized = await initializePolkadot('PolkaPay')
+
+    if (!initialized) {
+      setError('No Polkadot wallet extension found')
+      return false
+    }
+
+    // Get accounts
+    const allAccounts = await getAccounts()
+
+    if (allAccounts.length === 0) {
+      setError('No accounts found in wallet')
+      return false
+    }
+
+    setAccounts(allAccounts)
+    setSelectedAccount(allAccounts[0])
+    setIsConnected(true)
+
+    // Persist connection
+    localStorage.setItem('walletConnected', 'true')
+    localStorage.setItem('selectedWalletAddress', allAccounts[0].address)
+
+    return true
+  } catch (err) {
+    setError('Failed to connect wallet')
+    return false
+  } finally {
+    setIsConnecting(false)
   }
+}
+```
+
+### 3. Auto-Reconnect on Page Load
+
+```typescript
+useEffect(() => {
+  const loadSavedConnection = async () => {
+    const walletConnected = localStorage.getItem('walletConnected')
+    const savedAddress = localStorage.getItem('selectedWalletAddress')
+
+    if (walletConnected === 'true' && savedAddress) {
+      const success = await connect()
+      
+      if (success) {
+        const allAccounts = await getAccounts()
+        const account = allAccounts.find(acc => acc.address === savedAddress)
+        
+        if (account) {
+          setSelectedAccount(account)
+        }
+      }
+    }
+  }
+
+  loadSavedConnection()
 }, [])
 ```
 
-### Multiple Accounts
+## Authentication
 
-Support for multiple accounts per wallet:
+### Backend Authentication
 
+**Flow**:
+1. User connects wallet in frontend
+2. Frontend requests challenge from backend
+3. User signs challenge with private key
+4. Frontend sends signature to backend
+5. Backend verifies signature
+6. Backend returns JWT token
+
+**Frontend**:
 ```typescript
-const { accounts, selectedAccount, selectAccount } = useWallet()
+async function authenticateWithWallet(address: string) {
+  // 1. Get challenge
+  const { challenge } = await api.get('/auth/challenge', { params: { address } })
 
-// Switch account without disconnecting
-selectAccount(accounts[1])
+  // 2. Sign challenge
+  const signature = await signMessage(address, challenge)
+
+  if (!signature) {
+    throw new Error('Failed to sign message')
+  }
+
+  // 3. Verify signature and get token
+  const { access_token } = await api.post('/auth/wallet', {
+    wallet_address: address,
+    message: challenge,
+    signature
+  })
+
+  // 4. Store token
+  localStorage.setItem('access_token', access_token)
+
+  return access_token
+}
 ```
 
-### Error Handling
-
-```typescript
-const { error } = useWallet()
-
-{error && (
-  <div className="error">
-    <AlertCircle />
-    <p>{error}</p>
-  </div>
-)}
-```
-
-Common errors:
-- "No wallet extension found"
-- "No accounts found"
-- "User rejected request"
-- "Failed to connect wallet"
-
-## Security
-
-### Non-Custodial
-
-- App never accesses private keys
-- Wallet extension maintains control
-- Signatures done in extension
-- User approves each action
-
-### Signature Verification
-
-Backend verifies signatures:
-
+**Backend**:
 ```python
-from app.services.polkadot_service import polkadot_service
+from substrateinterface import Keypair
 
-is_valid = polkadot_service.verify_signature(
-    wallet_address="5GrwvaEF...",
-    message="Login to PolkaPay",
-    signature="0x..."
-)
+@router.post("/auth/wallet")
+async def wallet_login(credentials: WalletCredentials):
+    # Verify signature
+    keypair = Keypair(ss58_address=credentials.wallet_address)
+    
+    is_valid = keypair.verify(
+        data=credentials.message,
+        signature=credentials.signature
+    )
+    
+    if not is_valid:
+        raise HTTPException(status_code=401, detail="Invalid signature")
+    
+    # Create or get user
+    user = get_or_create_user(credentials.wallet_address)
+    
+    # Generate JWT token
+    token = create_access_token(data={"sub": user.wallet_address})
+    
+    return {"access_token": token, "token_type": "bearer"}
 ```
 
-## Testing
+## Transaction Signing
 
-### Local Testing
-
-1. Start frontend:
-```bash
-cd frontend
-pnpm run dev
-```
-
-2. Open http://localhost:3000/wallet
-
-3. Test connection:
-   - Click "Connect Wallet"
-   - Authorize in popup
-   - Select account
-   - Verify connection
-
-### Test Features
-
-**Multiple Accounts**:
-1. Create 2+ accounts in SubWallet
-2. Connect to PolkaPay
-3. Select different accounts
-4. Verify switching works
-
-**Persistence**:
-1. Connect wallet
-2. Refresh page (F5)
-3. Verify still connected
-4. Close and reopen browser
-5. Verify still connected
-
-**Disconnection**:
-1. Connect wallet
-2. Click disconnect
-3. Verify redirected to /wallet
-4. Verify state cleared
-
-## Troubleshooting
-
-### Wallet Not Detected
-
-**Solution**:
-- Install wallet extension
-- Enable extension
-- Refresh page
-- Check browser console
-
-### No Accounts Found
-
-**Solution**:
-- Create account in wallet
-- Import existing account
-- Refresh page
-- Reconnect wallet
-
-### User Rejected Request
-
-**Normal behavior** - user cancelled in popup
-
-**Solution**:
-- Try again
-- Click "Authorize" in popup
-
-### Connection Failed
-
-**Solutions**:
-1. Reload page
-2. Check extension is active
-3. Verify console for errors
-4. Try different browser
-5. Reinstall extension
-
-### Extension Not Detected in Firefox
-
-**Solution**:
-- Check Firefox extension settings
-- Verify extension enabled
-- Check permissions
-
-## Advanced Usage
-
-### Custom Message Signing
+### Sign and Send Transaction
 
 ```typescript
-const message = `
-Welcome to PolkaPay!
+async function sendTransaction(
+  address: string,
+  method: string,
+  args: any
+) {
+  // Get signer
+  const injector = await web3FromAddress(address)
 
-Sign this message to login.
+  // Create transaction
+  const tx = api.tx.contracts.call(
+    contractAddress,
+    0, // value
+    gasLimit,
+    method,
+    ...args
+  )
 
-Nonce: ${Date.now()}
-`
+  // Sign and send
+  const unsub = await tx.signAndSend(
+    address,
+    { signer: injector.signer },
+    ({ status, events }) => {
+      if (status.isInBlock) {
+        console.log(`Transaction included in block ${status.asInBlock}`)
+      }
 
-const signature = await sign(message)
-```
-
-### Account Formatting
-
-```typescript
-import { formatAddress } from '@/lib/polkadot'
-
-// Shorten address
-const short = formatAddress(address) // "5GrwvaE...HGKutQY"
-
-// Full address
-const full = address // "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
-```
-
-### Balance Checking
-
-```typescript
-import { ApiPromise, WsProvider } from '@polkadot/api'
-
-async function getBalance(address: string) {
-  const wsProvider = new WsProvider('wss://rococo-rpc.polkadot.io')
-  const api = await ApiPromise.create({ provider: wsProvider })
-  
-  const { data: balance } = await api.query.system.account(address)
-  return balance.free.toString()
+      if (status.isFinalized) {
+        console.log(`Transaction finalized in block ${status.asFinalized}`)
+        unsub()
+      }
+    }
+  )
 }
 ```
 
 ## UI Components
 
-### Wallet Status
+### WalletStatus Component
+
+**File**: `frontend/src/components/features/wallet-status.tsx`
+
+Displays wallet connection status in header.
 
 ```typescript
-{isConnected && (
-  <div className="wallet-status">
-    <Wallet className="icon" />
-    <span>{formatAddress(selectedAccount.address)}</span>
-    <div className="indicator" />
-  </div>
-)}
+export function WalletStatus() {
+  const {
+    isConnected,
+    selectedAccount,
+    accounts,
+    connect,
+    disconnect,
+    selectAccount,
+    getFormattedAddress
+  } = useWallet()
+
+  if (!isConnected) {
+    return (
+      <button onClick={connect}>
+        Connect Wallet
+      </button>
+    )
+  }
+
+  return (
+    <div>
+      <span>{getFormattedAddress(8)}</span>
+      <button onClick={disconnect}>Disconnect</button>
+      
+      {/* Account selector */}
+      <select onChange={(e) => {
+        const account = accounts.find(a => a.address === e.target.value)
+        if (account) selectAccount(account)
+      }}>
+        {accounts.map(account => (
+          <option key={account.address} value={account.address}>
+            {account.meta.name} ({formatAddress(account.address, 6)})
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+}
 ```
 
-### Connection Button
+### Wallet Modal
+
+**File**: `frontend/src/components/features/wallet-modal.tsx`
+
+Full-featured wallet management modal.
+
+**Features**:
+- Display wallet address with QR code
+- Show balance (DOT and BRL)
+- Copy address to clipboard
+- Switch between accounts
+- Disconnect wallet
+
+## Error Handling
+
+### Common Errors
+
+**1. No Extension Installed**:
+```typescript
+if (!initialized) {
+  return (
+    <div>
+      <p>No Polkadot wallet found. Please install:</p>
+      <ul>
+        <li><a href="https://subwallet.app/">SubWallet</a></li>
+        <li><a href="https://polkadot.js.org/extension/">Polkadot.js</a></li>
+        <li><a href="https://talisman.xyz/">Talisman</a></li>
+      </ul>
+    </div>
+  )
+}
+```
+
+**2. No Accounts**:
+```typescript
+if (accounts.length === 0) {
+  return (
+    <div>
+      <p>No accounts found. Please create an account in your wallet extension.</p>
+    </div>
+  )
+}
+```
+
+**3. User Rejected**:
+```typescript
+try {
+  const signature = await signMessage(address, message)
+} catch (error) {
+  if (error.message.includes('Cancelled')) {
+    alert('Transaction cancelled by user')
+  } else {
+    alert('Failed to sign transaction')
+  }
+}
+```
+
+**4. Network Mismatch**:
+```typescript
+const expectedNetwork = 'rococo'
+const currentNetwork = await api.rpc.system.chain()
+
+if (currentNetwork.toLowerCase() !== expectedNetwork) {
+  alert(`Please switch to ${expectedNetwork} network in your wallet`)
+}
+```
+
+## Best Practices
+
+### 1. Check Extension Availability
+
+Always check if extension is available before calling methods:
 
 ```typescript
-<Button 
-  onClick={connect} 
-  disabled={isConnecting}
-  variant="primary"
->
-  {isConnecting ? 'Connecting...' : 'Connect Wallet'}
-</Button>
+if (typeof window === 'undefined' || !window.injectedWeb3) {
+  console.error('Extension not available')
+  return
+}
 ```
 
-### Account Dropdown
+### 2. Handle Async Operations
+
+All wallet operations are async. Always use try/catch:
 
 ```typescript
-<DropdownMenu>
-  <DropdownMenuTrigger>
-    {formatAddress(selectedAccount.address)}
-  </DropdownMenuTrigger>
-  <DropdownMenuContent>
-    <DropdownMenuItem onClick={copyAddress}>
-      Copy Address
-    </DropdownMenuItem>
-    <DropdownMenuItem onClick={disconnect}>
-      Disconnect
-    </DropdownMenuItem>
-  </DropdownMenuContent>
-</DropdownMenu>
+try {
+  const accounts = await getAccounts()
+} catch (error) {
+  console.error('Failed to get accounts:', error)
+}
 ```
 
-## Future Improvements
+### 3. Provide User Feedback
 
-- WalletConnect for mobile
-- Ledger hardware wallet support
-- Multi-signature wallets
-- Balance display in header
-- Transaction history
-- Network switching
-- Multiple network support
+Show loading states during wallet operations:
+
+```typescript
+const [isConnecting, setIsConnecting] = useState(false)
+
+const handleConnect = async () => {
+  setIsConnecting(true)
+  try {
+    await connect()
+  } finally {
+    setIsConnecting(false)
+  }
+}
+```
+
+### 4. Persist Connection
+
+Save connection state to localStorage:
+
+```typescript
+// Save
+localStorage.setItem('walletConnected', 'true')
+localStorage.setItem('selectedWalletAddress', address)
+
+// Load on mount
+useEffect(() => {
+  const isConnected = localStorage.getItem('walletConnected') === 'true'
+  if (isConnected) {
+    reconnect()
+  }
+}, [])
+```
+
+### 5. Format Addresses
+
+Always format long addresses for display:
+
+```typescript
+export function formatAddress(address: string, length: number = 8): string {
+  if (!address || address.length < length * 2) return address
+  return `${address.slice(0, length)}...${address.slice(-length)}`
+}
+
+// Usage: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+// Result: 5GrwvaEF...oHGKutQY
+```
+
+### 6. Validate Addresses
+
+Validate addresses before using:
+
+```typescript
+export function isValidPolkadotAddress(address: string): boolean {
+  try {
+    return address.length >= 47 && address.length <= 48 && address.startsWith('5')
+  } catch (error) {
+    return false
+  }
+}
+```
+
+## Testing
+
+### Mock Wallet for Development
+
+```typescript
+// test/mocks/wallet.ts
+export const mockWallet = {
+  accounts: [
+    {
+      address: '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
+      meta: {
+        name: 'Test Account',
+        source: 'polkadot-js'
+      }
+    }
+  ],
+  
+  signMessage: async (message: string) => {
+    return '0x' + '00'.repeat(64) // Mock signature
+  }
+}
+```
+
+### Unit Tests
+
+```typescript
+import { render, screen, fireEvent } from '@testing-library/react'
+import { WalletProvider } from '@/contexts/WalletContext'
+
+describe('Wallet Integration', () => {
+  it('should connect wallet', async () => {
+    render(
+      <WalletProvider>
+        <MyComponent />
+      </WalletProvider>
+    )
+
+    const connectButton = screen.getByText('Connect Wallet')
+    fireEvent.click(connectButton)
+
+    await screen.findByText(/Connected/)
+  })
+})
+```
+
+## Troubleshooting
+
+### Extension Not Detected
+
+**Problem**: `web3Enable` returns empty array
+
+**Solutions**:
+1. Check extension is installed and enabled
+2. Refresh page after installing extension
+3. Check browser console for errors
+4. Try different browser
+
+### Accounts Not Loading
+
+**Problem**: `web3Accounts` returns empty array
+
+**Solutions**:
+1. Create account in wallet extension
+2. Grant permission to PolkaPay in extension settings
+3. Check extension is unlocked
+
+### Signature Verification Fails
+
+**Problem**: Backend rejects signature
+
+**Solutions**:
+1. Verify message format is correct
+2. Check address format (SS58)
+3. Ensure signature is hex string starting with `0x`
+4. Verify network matches (Rococo vs Polkadot)
+
+### Transaction Fails
+
+**Problem**: Transaction rejected or fails
+
+**Solutions**:
+1. Check sufficient balance for transaction + fees
+2. Verify gas limit is adequate
+3. Check contract is not paused
+4. Verify user has permission for action
+
+## Security Considerations
+
+### 1. Never Store Private Keys
+
+Private keys stay in wallet extension. Never request or store them.
+
+### 2. Verify Signatures Server-Side
+
+Always verify signatures on backend:
+
+```python
+keypair = Keypair(ss58_address=address)
+is_valid = keypair.verify(data=message, signature=signature)
+```
+
+### 3. Use HTTPS
+
+Always use HTTPS in production to prevent MITM attacks.
+
+### 4. Validate User Input
+
+Validate all addresses and amounts before signing:
+
+```typescript
+if (!isValidPolkadotAddress(address)) {
+  throw new Error('Invalid address')
+}
+
+if (amount <= 0 || amount > balance) {
+  throw new Error('Invalid amount')
+}
+```
+
+### 5. Show Transaction Details
+
+Always show full transaction details before signing:
+
+```typescript
+<div>
+  <h3>Confirm Transaction</h3>
+  <p>Action: Sell DOT</p>
+  <p>Amount: {dotAmount} DOT</p>
+  <p>Recipient: {formatAddress(recipientAddress)}</p>
+  <p>Fee: ~0.01 DOT</p>
+  <button onClick={sign}>Confirm</button>
+</div>
+```
 
 ## Resources
 
-- [Polkadot.js Extension Docs](https://polkadot.js.org/docs/extension/)
+- [Polkadot.js Extension Documentation](https://polkadot.js.org/docs/extension/)
 - [SubWallet Documentation](https://docs.subwallet.app/)
 - [Talisman Documentation](https://docs.talisman.xyz/)
-- [Polkadot Wiki](https://wiki.polkadot.network/)
-- [Rococo Faucet](https://faucet.polkadot.io/)
-
+- [Polkadot Address Format](https://wiki.polkadot.network/docs/learn-accounts)
+- [Substrate SS58](https://docs.substrate.io/reference/address-formats/)
