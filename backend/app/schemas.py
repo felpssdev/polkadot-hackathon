@@ -31,8 +31,16 @@ class UserResponse(UserBase):
 
 # Liquidity Provider Schemas
 class LiquidityProviderCreate(BaseModel):
-    pix_key: str
-    pix_key_type: str  # cpf, email, phone, random
+    pix_key: str = Field(..., description="Chave PIX do LP")
+    pix_key_type: str = Field(..., description="Tipo: cpf, email, phone, random")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "pix_key": "lp@example.com",
+                "pix_key_type": "email"
+            }
+        }
 
 
 class LiquidityProviderResponse(BaseModel):
@@ -53,9 +61,18 @@ class LiquidityProviderResponse(BaseModel):
 
 # Order Schemas
 class OrderCreate(BaseModel):
-    order_type: OrderType
-    dot_amount: float = Field(..., gt=0, description="Amount of DOT")
-    pix_key: Optional[str] = None  # Required for SELL orders
+    order_type: OrderType = Field(..., description="Tipo da ordem: buy ou sell")
+    dot_amount: float = Field(..., gt=0, description="Quantidade de DOT")
+    pix_key: Optional[str] = Field(None, description="Chave PIX (obrigatória para SELL)")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "order_type": "sell",
+                "dot_amount": 10.0,
+                "pix_key": "user@example.com"
+            }
+        }
 
 
 class OrderResponse(BaseModel):
@@ -86,8 +103,16 @@ class OrderAccept(BaseModel):
 
 
 class OrderConfirmPayment(BaseModel):
-    pix_txid: str
-    payment_proof: Optional[str] = None
+    pix_txid: str = Field(..., description="ID da transação PIX")
+    payment_proof: Optional[str] = Field(None, description="URL ou hash do comprovante")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "pix_txid": "E12345678202511081900abcd1234567",
+                "payment_proof": "https://storage.example.com/proof123.jpg"
+            }
+        }
 
 
 # PIX Schemas
@@ -100,9 +125,18 @@ class PIXQRCodeResponse(BaseModel):
 
 # Auth Schemas
 class WalletAuthRequest(BaseModel):
-    wallet_address: str
-    signature: str
-    message: str
+    wallet_address: str = Field(..., description="Endereço da wallet Polkadot.js")
+    signature: str = Field(..., description="Assinatura da mensagem")
+    message: str = Field(..., description="Mensagem assinada")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "wallet_address": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+                "signature": "0x1234567890abcdef...",
+                "message": "Sign in to PolkaPay - Nonce: 123456"
+            }
+        }
 
 
 class TokenResponse(BaseModel):

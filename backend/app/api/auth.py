@@ -27,7 +27,39 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-@router.post("/wallet", response_model=TokenResponse)
+@router.post(
+    "/wallet",
+    response_model=TokenResponse,
+    summary="Autenticar com Polkadot.js wallet",
+    description="""
+    Autentica usuário usando assinatura da wallet Polkadot.js.
+    
+    **Fluxo:**
+    1. Frontend gera mensagem aleatória
+    2. Usuário assina com wallet
+    3. Backend valida assinatura
+    4. Retorna JWT token
+    
+    **Uso do Token:**
+    - Adicione o token no header: `Authorization: Bearer <token>`
+    - Token expira em 30 minutos
+    - Use em todos os endpoints protegidos
+    """,
+    responses={
+        200: {
+            "description": "Autenticação bem-sucedida",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                        "token_type": "bearer"
+                    }
+                }
+            }
+        },
+        401: {"description": "Assinatura inválida"}
+    }
+)
 async def authenticate_wallet(
     auth_request: WalletAuthRequest,
     db: Session = Depends(get_db)
@@ -74,7 +106,46 @@ async def authenticate_wallet(
     return TokenResponse(access_token=access_token)
 
 
-@router.get("/me", response_model=UserResponse)
+@router.get(
+    "/me",
+    response_model=UserResponse,
+    summary="Obter usuário autenticado",
+    description="""
+    Retorna informações do usuário autenticado.
+    
+    **Requer:** Token JWT no header Authorization
+    
+    **Retorna:**
+    - Informações do perfil
+    - Limites de compra/venda
+    - Estatísticas de ordens
+    - Nível de verificação
+    """,
+    responses={
+        200: {
+            "description": "Dados do usuário",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 1,
+                        "wallet_address": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+                        "buy_limit_usd": 1.0,
+                        "buy_orders_per_day": 1,
+                        "sell_limit_usd": 100.0,
+                        "sell_orders_per_day": 10,
+                        "total_orders": 5,
+                        "successful_orders": 4,
+                        "rating": 4.8,
+                        "is_verified": False,
+                        "created_at": "2025-11-08T10:00:00Z"
+                    }
+                }
+            }
+        },
+        401: {"description": "Token inválido ou expirado"},
+        404: {"description": "Usuário não encontrado"}
+    }
+)
 async def get_current_user(
     token: str,
     db: Session = Depends(get_db)
