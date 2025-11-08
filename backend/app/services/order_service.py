@@ -100,18 +100,23 @@ class OrderService:
             db.commit()
             db.refresh(order)
             
-            # Create order on blockchain (for BUY orders, seller locks DOT)
-            if order_data.order_type == OrderType.BUY:
-                # Buyer will pay PIX, LP will send DOT
-                logger.info(f"Buy order created: {order.id}")
-            else:
-                # Seller locks DOT on blockchain
-                blockchain_result = polkadot_service.create_order(dot_amount)
-                if blockchain_result:
-                    order.contract_order_id = blockchain_result["order_id"]
-                    order.escrow_tx_hash = blockchain_result["tx_hash"]
-                    db.commit()
-                    logger.info(f"Sell order created on blockchain: {order.id}")
+            # Create order on blockchain
+            order_type_str = "Sell" if order_data.order_type == OrderType.SELL else "Buy"
+            blockchain_result = polkadot_service.create_order(order_type_str, dot_amount)
+            
+            if not blockchain_result:
+                logger.error(f"Failed to create order on blockchain for order {order.id}")
+                db.delete(order)  # Rollback database if blockchain fails
+                db.commit()
+                return None
+            
+            # Update order with blockchain info
+            order.blockchain_order_id = blockchain_result["order_id"]
+            order.blockchain_tx_hash = blockchain_result["tx_hash"]
+            db.commit()
+            db.refresh(order)
+            
+            logger.info(f"{order_type_str} order created: DB ID={order.id}, Blockchain ID={order.blockchain_order_id}")
             
             return order
             
@@ -156,17 +161,23 @@ class OrderService:
                 logger.warning(f"Order size outside LP limits")
                 return None
             
+            # Accept order on blockchain
+            if order.order_type == OrderType.SELL:
+                # Sell order: LP accepts without depositing DOT
+                blockchain_result = polkadot_service.accept_order(order.blockchain_order_id)
+            else:
+                # Buy order: LP accepts and deposits DOT
+                blockchain_result = polkadot_service.accept_buy_order(order.blockchain_order_id, order.dot_amount)
+            
+            if not blockchain_result:
+                logger.error(f"Failed to accept order {order_id} on blockchain")
+                return None
+            
             # Update order
             order.lp_id = lp.id
             order.status = OrderStatus.ACCEPTED
             order.accepted_at = datetime.utcnow()
-            
-            # If sell order, accept on blockchain
-            if order.order_type == OrderType.SELL and order.contract_order_id:
-                blockchain_result = polkadot_service.accept_order(order.contract_order_id)
-                if not blockchain_result:
-                    logger.error("Failed to accept order on blockchain")
-                    return None
+            order.blockchain_tx_hash = blockchain_result["tx_hash"]  # Update with accept tx
             
             # Generate PIX QR code for payment
             if order.order_type == OrderType.BUY:
@@ -204,10 +215,19 @@ class OrderService:
             if not order or order.status != OrderStatus.ACCEPTED:
                 return None
             
+            # Confirm payment on blockchain
+            blockchain_result = polkadot_service.confirm_payment_sent(order.blockchain_order_id)
+            
+            if not blockchain_result:
+                logger.error(f"Failed to confirm payment on blockchain for order {order_id}")
+                return None
+            
+            # Update order
             order.status = OrderStatus.PAYMENT_SENT
             order.pix_txid = pix_txid
             order.pix_payment_proof = payment_proof
             order.payment_sent_at = datetime.utcnow()
+            order.blockchain_tx_hash = blockchain_result["tx_hash"]  # Update with confirm tx
             
             db.commit()
             db.refresh(order)
@@ -238,14 +258,16 @@ class OrderService:
                 pix_service.mock_confirm_payment(order.pix_txid)
             
             # Complete on blockchain
-            if order.contract_order_id:
-                blockchain_result = polkadot_service.complete_order(order.contract_order_id)
-                if blockchain_result:
-                    order.release_tx_hash = blockchain_result["tx_hash"]
+            blockchain_result = polkadot_service.complete_order(order.blockchain_order_id)
+            
+            if not blockchain_result:
+                logger.error(f"Failed to complete order {order_id} on blockchain")
+                return None
             
             # Update order
             order.status = OrderStatus.COMPLETED
             order.completed_at = datetime.utcnow()
+            order.blockchain_tx_hash = blockchain_result["tx_hash"]  # Update with complete tx
             
             # Update user stats
             order.user.total_orders += 1
@@ -265,6 +287,42 @@ class OrderService:
             
         except Exception as e:
             logger.error(f"Error completing order: {e}")
+            db.rollback()
+            return None
+    
+    async def cancel_order(
+        self,
+        db: Session,
+        order_id: int
+    ) -> Optional[Order]:
+        """Cancel order and refund"""
+        try:
+            order = self.get_order(db, order_id)
+            
+            if not order or order.status not in [OrderStatus.PENDING, OrderStatus.ACCEPTED]:
+                logger.warning(f"Order {order_id} cannot be cancelled (status: {order.status if order else 'not found'})")
+                return None
+            
+            # Cancel on blockchain
+            blockchain_result = polkadot_service.cancel_order(order.blockchain_order_id)
+            
+            if not blockchain_result:
+                logger.error(f"Failed to cancel order {order_id} on blockchain")
+                return None
+            
+            # Update order
+            order.status = OrderStatus.CANCELLED
+            order.cancelled_at = datetime.utcnow()
+            order.blockchain_tx_hash = blockchain_result["tx_hash"]  # Update with cancel tx
+            
+            db.commit()
+            db.refresh(order)
+            
+            logger.info(f"Order {order_id} cancelled")
+            return order
+            
+        except Exception as e:
+            logger.error(f"Error cancelling order: {e}")
             db.rollback()
             return None
 
