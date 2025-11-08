@@ -67,11 +67,6 @@ PolkaPay system architecture and design patterns.
 
 **Technology**: PostgreSQL 15
 
-**Responsibilities**:
-- Persistent data storage
-- Transaction management
-- Data integrity
-
 **Entities**:
 - Users
 - Liquidity Providers
@@ -91,12 +86,6 @@ PolkaPay system architecture and design patterns.
 ### Blockchain
 
 **Technology**: Polkadot (Rococo Testnet), ink! Smart Contracts
-
-**Responsibilities**:
-- DOT escrow management
-- Order state on-chain
-- Fund transfers
-- Fee distribution
 
 **Smart Contract Functions**:
 - `create_order()` - Lock DOT in escrow
@@ -274,58 +263,3 @@ Cloud Provider
 - Active users
 - Order volume
 - System health
-
-## Development Workflow
-
-### Local Development
-
-1. Clone repository
-2. Start Docker containers
-3. Initialize database
-4. Run tests
-5. Develop features
-6. Submit pull request
-
-### CI/CD Pipeline (Future)
-
-1. Code push
-2. Automated tests
-3. Build Docker images
-4. Deploy to staging
-5. Integration tests
-6. Deploy to production
-
-## Technology Decisions
-
-### Why FastAPI?
-
-- High performance (async)
-- Automatic API documentation
-- Type hints support
-- Modern Python features
-- Easy testing
-
-### Why Next.js?
-
-- Server-side rendering
-- File-based routing
-- API routes
-- Image optimization
-- Built-in TypeScript support
-
-### Why PostgreSQL?
-
-- ACID compliance
-- Complex queries
-- JSON support
-- Reliability
-- Mature ecosystem
-
-### Why ink!?
-
-- Rust-based (safety)
-- Polkadot native
-- WebAssembly compilation
-- Small contract size
-- Active development
-

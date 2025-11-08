@@ -20,11 +20,7 @@ cd polkadot-hackathon
 ### 2. Start Services
 
 ```bash
-# Start all services
 docker-compose up -d
-
-# Or using Makefile
-make up
 ```
 
 This starts:
@@ -36,11 +32,7 @@ This starts:
 ### 3. Initialize Database
 
 ```bash
-# Initialize with sample data
 docker-compose exec backend python scripts/init_db.py
-
-# Or using Makefile
-make init-db
 ```
 
 ### 4. Access Application
@@ -86,33 +78,23 @@ curl http://localhost:8000/api/v1/orders/
 ### View Logs
 
 ```bash
-# All services
-make logs
+# Backend
+docker-compose logs -f backend
 
-# Backend only
-make logs-backend
-
-# Frontend only
-make logs-frontend
+# Frontend
+docker-compose logs -f frontend
 ```
 
 ### Restart Services
 
 ```bash
-# Restart backend
-make restart-backend
-
-# Restart all
-docker-compose restart
+docker-compose restart backend
+docker-compose restart frontend
 ```
 
 ### Stop Services
 
 ```bash
-# Stop all services
-make down
-
-# Or
 docker-compose down
 ```
 
@@ -132,13 +114,8 @@ docker-compose build --no-cache
 
 ```bash
 cd backend
-
-# Create virtual environment
 python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# venv\Scripts\activate    # Windows
-
-# Install dependencies
+source venv/bin/activate
 pip install -r requirements.txt
 
 # Start database and Redis
@@ -152,42 +129,8 @@ uvicorn app.main:app --reload
 
 ```bash
 cd frontend
-
-# Install dependencies
 pnpm install
-
-# Run development server
 pnpm run dev
-```
-
-## Complete Order Flow Example
-
-### Scenario: Sell 2 DOT for PIX
-
-```bash
-# 1. Create sell order
-ORDER_ID=$(curl -s -X POST http://localhost:8000/api/v1/orders/ \
-  -H "Content-Type: application/json" \
-  -d '{"order_type": "sell", "dot_amount": 2.0, "pix_key": "user@email.com"}' \
-  | jq -r '.id')
-
-echo "Order created: $ORDER_ID"
-
-# 2. LP accepts order
-curl -X POST http://localhost:8000/api/v1/orders/$ORDER_ID/accept
-
-# 3. LP sends PIX (off-chain)
-
-# 4. User confirms payment received
-curl -X POST http://localhost:8000/api/v1/orders/$ORDER_ID/confirm-payment \
-  -H "Content-Type: application/json" \
-  -d '{"pix_txid": "E12345678901234567890123456"}'
-
-# 5. System completes order
-curl -X POST http://localhost:8000/api/v1/orders/$ORDER_ID/complete
-
-# 6. Verify order completed
-curl http://localhost:8000/api/v1/orders/$ORDER_ID | jq
 ```
 
 ## Troubleshooting
@@ -199,9 +142,6 @@ curl http://localhost:8000/api/v1/orders/$ORDER_ID | jq
 lsof -i :8000  # Backend
 lsof -i :3000  # Frontend
 lsof -i :5432  # PostgreSQL
-
-# Change port in docker-compose.yml
-# Example: "8001:8000" instead of "8000:8000"
 ```
 
 ### Database Connection Error
@@ -225,62 +165,34 @@ docker-compose logs -f backend
 
 # Enter container
 docker-compose exec backend bash
-
-# Check dependencies
-docker-compose exec backend pip list
 ```
 
 ### Clean Restart
 
 ```bash
-# Stop everything
-docker-compose down
-
-# Remove volumes (deletes data)
 docker-compose down -v
-
-# Rebuild images
 docker-compose build --no-cache
-
-# Start again
 docker-compose up -d
-
-# Reinitialize database
-make init-db
+docker-compose exec backend python scripts/init_db.py
 ```
 
 ## Next Steps
 
 - Explore API documentation at http://localhost:8000/docs
-- Read [API Reference](../backend/api-reference.md) for detailed examples
-- See [Architecture Overview](../architecture/overview.md) for system design
-- Check [Use Cases](../architecture/use-cases.md) for flow diagrams
+- Read [API Reference](api-reference.md) for detailed examples
+- See [Architecture Overview](overview.md) for system design
+- Check [Use Cases](use-cases.md) for flow diagrams
 
 ## Database Access
 
-### Using psql
-
 ```bash
 # Connect to database
-make db-shell
-
-# Or directly
 docker-compose exec db psql -U polkapay -d polkapay
 ```
 
-### Connection Details
-
+Connection Details:
 - Host: localhost
 - Port: 5432
 - Database: polkapay
 - User: polkapay
 - Password: polkapay123
-
-### GUI Clients
-
-Compatible with:
-- DBeaver
-- pgAdmin
-- TablePlus
-- DataGrip
-

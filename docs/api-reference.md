@@ -138,16 +138,6 @@ User buys DOT with PIX.
 }
 ```
 
-**Example**:
-```bash
-curl -X POST http://localhost:8000/api/v1/orders/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "order_type": "buy",
-    "dot_amount": 1.0
-  }'
-```
-
 **Response**:
 ```json
 {
@@ -198,14 +188,6 @@ curl http://localhost:8000/api/v1/orders/?order_type=buy
     "status": "pending",
     "dot_amount": 2.0,
     "brl_amount": 75.0,
-    ...
-  },
-  {
-    "id": 2,
-    "order_type": "buy",
-    "status": "pending",
-    "dot_amount": 1.0,
-    "brl_amount": 37.5,
     ...
   }
 ]
@@ -268,25 +250,11 @@ User confirms PIX payment received.
 }
 ```
 
-**Example**:
-```bash
-curl -X POST http://localhost:8000/api/v1/orders/1/confirm-payment \
-  -H "Content-Type: application/json" \
-  -d '{
-    "pix_txid": "E12345678901234567890123456"
-  }'
-```
-
 ### Complete Order
 
 System completes the order.
 
 **Endpoint**: `POST /orders/{id}/complete`
-
-**Example**:
-```bash
-curl -X POST http://localhost:8000/api/v1/orders/1/complete
-```
 
 **Response**:
 ```json
@@ -312,16 +280,6 @@ Register as a liquidity provider.
   "pix_key": "lp@email.com",
   "pix_key_type": "email"
 }
-```
-
-**Example**:
-```bash
-curl -X POST http://localhost:8000/api/v1/lp/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "pix_key": "lp@email.com",
-    "pix_key_type": "email"
-  }'
 ```
 
 **Response**:
@@ -357,21 +315,6 @@ Get orders available for LP to accept.
 **Example**:
 ```bash
 curl http://localhost:8000/api/v1/lp/available-orders
-```
-
-**Response**:
-```json
-[
-  {
-    "id": 1,
-    "order_type": "sell",
-    "status": "pending",
-    "dot_amount": 2.0,
-    "brl_amount": 75.0,
-    "usd_amount": 15.0,
-    ...
-  }
-]
 ```
 
 ### Get LP Orders
@@ -415,36 +358,6 @@ Get LP earnings statistics.
 }
 ```
 
-## Complete Order Flow Example
-
-### Sell Order Flow
-
-```bash
-# 1. Create sell order
-ORDER_ID=$(curl -s -X POST http://localhost:8000/api/v1/orders/ \
-  -H "Content-Type: application/json" \
-  -d '{"order_type": "sell", "dot_amount": 2.0, "pix_key": "user@email.com"}' \
-  | jq -r '.id')
-
-echo "Order created: $ORDER_ID"
-
-# 2. LP accepts order
-curl -X POST http://localhost:8000/api/v1/orders/$ORDER_ID/accept
-
-# 3. LP sends PIX (off-chain)
-
-# 4. User confirms payment
-curl -X POST http://localhost:8000/api/v1/orders/$ORDER_ID/confirm-payment \
-  -H "Content-Type: application/json" \
-  -d '{"pix_txid": "E12345678901234567890123456"}'
-
-# 5. Complete order
-curl -X POST http://localhost:8000/api/v1/orders/$ORDER_ID/complete
-
-# 6. Verify completion
-curl http://localhost:8000/api/v1/orders/$ORDER_ID | jq
-```
-
 ## Code Examples
 
 ### Python
@@ -468,11 +381,6 @@ order_data = {
 response = requests.post(f"{BASE_URL}/orders/", json=order_data)
 order = response.json()
 print(f"Order created: {order['id']}")
-
-# List active orders
-response = requests.get(f"{BASE_URL}/orders/")
-orders = response.json()
-print(f"Active orders: {len(orders)}")
 ```
 
 ### JavaScript
@@ -503,9 +411,6 @@ async function createSellOrder() {
   const order = await response.json();
   console.log(`Order created: ${order.id}`);
 }
-
-getExchangeRates();
-createSellOrder();
 ```
 
 ## Status Codes
@@ -542,4 +447,3 @@ For interactive API testing, visit:
 
 - Swagger UI: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
-
