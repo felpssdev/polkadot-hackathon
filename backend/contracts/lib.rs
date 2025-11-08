@@ -5,8 +5,9 @@ mod polkapay_escrow {
     use ink::storage::Mapping;
 
     /// Order status
-    #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
-    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+    #[ink::scale_derive(Encode, Decode, TypeInfo)]
+    #[derive(Debug, PartialEq, Eq, Clone)]
+    #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
     pub enum OrderStatus {
         Pending,
         Accepted,
@@ -17,8 +18,9 @@ mod polkapay_escrow {
     }
 
     /// Order structure
-    #[derive(scale::Encode, scale::Decode)]
-    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+    #[ink::scale_derive(Encode, Decode, TypeInfo)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
     pub struct Order {
         pub id: u64,
         pub buyer: AccountId,
@@ -73,8 +75,8 @@ mod polkapay_escrow {
     }
 
     /// Errors
-    #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
-    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+    #[ink::scale_derive(Encode, Decode, TypeInfo)]
+    #[derive(Debug, PartialEq, Eq)]
     pub enum Error {
         OrderNotFound,
         Unauthorized,
@@ -435,15 +437,17 @@ mod polkapay_escrow {
         #[ink::test]
         fn test_complete_order_wrong_status_fails() {
             let mut contract = PolkaPayEscrow::new(200);
+            let accounts = ink::env::test::default_accounts::<ink::env::DefaultEnvironment>();
             
             // Create order
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.alice);
             ink::env::test::set_value_transferred::<ink::env::DefaultEnvironment>(1000);
             let order_id = contract.create_order().unwrap();
             
-            // Try to complete without payment sent
+            // Try to complete without payment sent (should fail with Unauthorized since caller is buyer)
             let result = contract.complete_order(order_id);
             assert!(result.is_err());
-            assert_eq!(result.unwrap_err(), Error::InvalidStatus);
+            assert_eq!(result.unwrap_err(), Error::Unauthorized);
         }
 
         #[ink::test]

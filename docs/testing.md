@@ -6,6 +6,11 @@ Complete testing documentation for PolkaPay.
 
 ### Prerequisites
 
+- Rust 1.70+
+- cargo-contract 4.0+
+- ink! 5.1
+- binaryen (wasm-opt)
+
 ```bash
 # Install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -14,7 +19,10 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 rustup target add wasm32-unknown-unknown
 
 # Install cargo-contract
-cargo install cargo-contract --force
+cargo install cargo-contract --force --locked
+
+# Install binaryen (Ubuntu/Debian)
+sudo apt-get update && sudo apt-get install -y binaryen
 ```
 
 ### Unit Tests
