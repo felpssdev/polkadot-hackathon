@@ -165,6 +165,50 @@ export const ordersApi = {
       token,
     })
   },
+
+  /**
+   * Cancel order
+   */
+  cancelOrder: async (orderId: number, token: string) => {
+    return apiFetch(`/orders/${orderId}/cancel`, {
+      method: 'POST',
+      token,
+    })
+  },
+
+  /**
+   * Create dispute
+   */
+  createDispute: async (orderId: number, token: string) => {
+    return apiFetch(`/orders/${orderId}/dispute`, {
+      method: 'POST',
+      token,
+    })
+  },
+
+  /**
+   * Resolve dispute (Admin only)
+   */
+  resolveDispute: async (
+    orderId: number,
+    favorBuyer: boolean,
+    token: string,
+  ) => {
+    return apiFetch(
+      `/orders/${orderId}/resolve-dispute?favor_buyer=${favorBuyer}`,
+      {
+        method: 'POST',
+        token,
+      },
+    )
+  },
+
+  /**
+   * Get blockchain order details
+   */
+  getBlockchainOrder: async (orderId: number) => {
+    return apiFetch(`/orders/${orderId}/blockchain`)
+  },
 }
 
 /**

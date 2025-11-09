@@ -17,7 +17,8 @@ export interface Order {
   pix_key: string | null
   pix_qr_code: string | null
   pix_txid: string | null
-  contract_order_id: number | null
+  blockchain_order_id: number | null
+  blockchain_tx_hash: string | null
   created_at: string
   expires_at: string | null
 }

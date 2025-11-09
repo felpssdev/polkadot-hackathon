@@ -45,6 +45,9 @@ class User(Base):
     is_verified = Column(Boolean, default=False)
     verification_level = Column(Integer, default=0)
     
+    # Admin
+    is_admin = Column(Boolean, default=False)
+    
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

@@ -8,6 +8,7 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
+      - ./backend/contracts/target/ink:/app/contracts
     environment:
       - DEBUG=True
       - DATABASE_URL=postgresql://polkapay:polkapay123@db:5432/polkapay
@@ -15,6 +16,9 @@ services:
       - POLKADOT_NODE_URL=wss://rococo-rpc.polkadot.io
       - PIX_MOCK_ENABLED=True
       - SECRET_KEY=dev-secret-key-change-in-production
+      - CONTRACT_ADDRESS=${CONTRACT_ADDRESS:-}
+      - CONTRACT_METADATA_PATH=/app/contracts/polkapay_escrow.json
+      - SIGNER_SEED=${SIGNER_SEED:-}
     depends_on:
       - db
       - redis

@@ -6,27 +6,16 @@ from app.database import get_db
 from app.models import User, LiquidityProvider, Order, OrderStatus
 from app.schemas import LiquidityProviderCreate, LiquidityProviderResponse, OrderResponse
 from app.services.pix_service import pix_service
+from app.api.auth import get_current_user_dependency
 
 router = APIRouter(prefix="/lp", tags=["liquidity_providers"])
-
-
-# Mock dependency
-async def get_current_user(db: Session = Depends(get_db)) -> User:
-    """Get current authenticated user (mock)"""
-    user = db.query(User).first()
-    if not user:
-        user = User(wallet_address="5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY")
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-    return user
 
 
 @router.post("/register", response_model=LiquidityProviderResponse)
 async def register_as_lp(
     lp_data: LiquidityProviderCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """Register as Liquidity Provider"""
     
@@ -61,7 +50,7 @@ async def register_as_lp(
 @router.get("/profile", response_model=LiquidityProviderResponse)
 async def get_lp_profile(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """Get LP profile"""
     if not current_user.lp_profile:
@@ -76,7 +65,7 @@ async def get_lp_profile(
 @router.get("/available-orders", response_model=List[OrderResponse])
 async def get_available_orders(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """Get orders available for LP to accept"""
     
@@ -101,7 +90,7 @@ async def get_available_orders(
 @router.get("/my-orders", response_model=List[OrderResponse])
 async def get_lp_orders(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """Get orders processed by this LP"""
     
@@ -122,7 +111,7 @@ async def get_lp_orders(
 async def update_availability(
     is_available: bool,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """Update LP availability"""
     
@@ -141,7 +130,7 @@ async def update_availability(
 @router.get("/earnings")
 async def get_earnings(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """Get LP earnings"""
     

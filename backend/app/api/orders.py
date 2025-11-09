@@ -7,21 +7,9 @@ from app.database import get_db
 from app.models import User, OrderType, OrderStatus
 from app.schemas import OrderCreate, OrderResponse, OrderAccept, OrderConfirmPayment
 from app.services.order_service import order_service
+from app.api.auth import get_current_user_dependency, get_admin_user
 
 router = APIRouter(prefix="/orders", tags=["orders"])
-
-
-# Mock dependency for getting current user (in production, use proper JWT auth)
-async def get_current_user(db: Session = Depends(get_db)) -> User:
-    """Get current authenticated user (mock)"""
-    # For now, return first user or create one
-    user = db.query(User).first()
-    if not user:
-        user = User(wallet_address="5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY")
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-    return user
 
 
 @router.post(
@@ -79,7 +67,7 @@ async def get_current_user(db: Session = Depends(get_db)) -> User:
 async def create_order(
     order_data: OrderCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """
     Create a new order
@@ -111,7 +99,7 @@ async def get_orders(
 @router.get("/my-orders", response_model=List[OrderResponse])
 async def get_my_orders(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """Get current user's orders"""
     orders = order_service.get_user_orders(db, current_user.id)
@@ -139,7 +127,7 @@ async def get_order(
 async def accept_order(
     order_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """
     LP accepts an order
@@ -169,7 +157,7 @@ async def confirm_payment(
     order_id: int,
     payment_data: OrderConfirmPayment,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """Confirm PIX payment was sent"""
     order = order_service.confirm_payment(
@@ -192,7 +180,7 @@ async def confirm_payment(
 async def complete_order(
     order_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """
     Complete order and release funds
@@ -237,7 +225,7 @@ async def complete_order(
 async def cancel_order(
     order_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """
     Cancel order and refund DOT
@@ -303,7 +291,7 @@ async def cancel_order(
 async def create_dispute(
     order_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """
     Create dispute for an order
@@ -377,15 +365,13 @@ async def resolve_dispute(
     order_id: int,
     favor_buyer: bool,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    admin_user: User = Depends(get_admin_user)
 ):
     """
     Resolve dispute (Admin only)
     
     favor_buyer: True to transfer DOT to buyer, False to transfer to seller
     """
-    # TODO: Add proper admin check
-    # For now, only contract owner can resolve
     
     order = order_service.get_order(db, order_id)
     

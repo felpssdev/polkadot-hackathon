@@ -72,6 +72,23 @@ Add the token in the header: `Authorization: Bearer <token>`
 - **Network**: Rococo Testnet
 - **Smart Contract**: ink! 5.1
 - **Token**: ROC (Rococo)
+
+## Development Notes
+
+**Mock Services:**
+- PIX payment verification is mocked for development
+- Set `PIX_MOCK_ENABLED=False` for production
+- Mock allows testing without real PIX integration
+
+**Authentication:**
+- JWT-based authentication via Polkadot.js wallet signature
+- Token expires in 30 minutes
+- Admin endpoints require `is_admin=true` in user profile
+
+**Smart Contract:**
+- Contract must be deployed to Rococo before backend can interact
+- Set `CONTRACT_ADDRESS` and `SIGNER_SEED` in environment variables
+- Backend will attempt to connect on startup
 """
 
 # Create FastAPI app

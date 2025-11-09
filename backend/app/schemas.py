@@ -23,6 +23,7 @@ class UserResponse(UserBase):
     successful_orders: int
     rating: float
     is_verified: bool
+    is_admin: bool
     created_at: datetime
     
     class Config:
