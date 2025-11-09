@@ -31,8 +31,8 @@ class UserResponse(UserBase):
 
 # Liquidity Provider Schemas
 class LiquidityProviderCreate(BaseModel):
-    pix_key: str = Field(..., description="Chave PIX do LP")
-    pix_key_type: str = Field(..., description="Tipo: cpf, email, phone, random")
+    pix_key: str = Field(..., description="LP's PIX key")
+    pix_key_type: str = Field(..., description="Type: cpf, email, phone, random")
     
     class Config:
         json_schema_extra = {
@@ -61,9 +61,9 @@ class LiquidityProviderResponse(BaseModel):
 
 # Order Schemas
 class OrderCreate(BaseModel):
-    order_type: OrderType = Field(..., description="Tipo da ordem: buy ou sell")
-    dot_amount: float = Field(..., gt=0, description="Quantidade de DOT")
-    pix_key: Optional[str] = Field(None, description="Chave PIX (obrigatória para SELL)")
+    order_type: OrderType = Field(..., description="Order type: buy or sell")
+    dot_amount: float = Field(..., gt=0, description="Amount of DOT")
+    pix_key: Optional[str] = Field(None, description="PIX key (required for SELL orders)")
     
     class Config:
         json_schema_extra = {
@@ -103,8 +103,8 @@ class OrderAccept(BaseModel):
 
 
 class OrderConfirmPayment(BaseModel):
-    pix_txid: str = Field(..., description="ID da transação PIX")
-    payment_proof: Optional[str] = Field(None, description="URL ou hash do comprovante")
+    pix_txid: str = Field(..., description="PIX transaction ID")
+    payment_proof: Optional[str] = Field(None, description="URL or hash of payment proof")
     
     class Config:
         json_schema_extra = {
@@ -125,9 +125,9 @@ class PIXQRCodeResponse(BaseModel):
 
 # Auth Schemas
 class WalletAuthRequest(BaseModel):
-    wallet_address: str = Field(..., description="Endereço da wallet Polkadot.js")
-    signature: str = Field(..., description="Assinatura da mensagem")
-    message: str = Field(..., description="Mensagem assinada")
+    wallet_address: str = Field(..., description="Polkadot.js wallet address")
+    signature: str = Field(..., description="Message signature")
+    message: str = Field(..., description="Signed message")
     
     class Config:
         json_schema_extra = {

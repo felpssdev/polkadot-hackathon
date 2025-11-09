@@ -18,15 +18,15 @@ logger = logging.getLogger(__name__)
 tags_metadata = [
     {
         "name": "auth",
-        "description": "Autenticação e gerenciamento de usuários. Endpoints para conectar wallet Polkadot.js e obter informações do usuário autenticado.",
+        "description": "Authentication and user management. Endpoints to connect Polkadot.js wallet and get authenticated user information.",
     },
     {
         "name": "orders",
-        "description": "Gerenciamento de ordens de compra/venda de DOT. Inclui criação, aceitação, confirmação de pagamento, cancelamento e sistema de disputas.",
+        "description": "DOT buy/sell order management. Includes creation, acceptance, payment confirmation, cancellation and dispute system.",
     },
     {
         "name": "liquidity_providers",
-        "description": "Gerenciamento de Provedores de Liquidez (LPs). Registro, perfil, disponibilidade e estatísticas de ganhos.",
+        "description": "Liquidity Provider (LP) management. Registration, profile, availability and earnings statistics.",
     },
 ]
 
@@ -34,38 +34,38 @@ tags_metadata = [
 description = """
 # PolkaPay - P2P DOT ↔ PIX Exchange
 
-Plataforma descentralizada para troca de DOT (Polkadot) por BRL via PIX.
+Decentralized platform for exchanging DOT (Polkadot) for BRL via PIX.
 
-## Recursos Principais
+## Main Features
 
-* **Ordens de Compra/Venda**: Crie ordens para comprar ou vender DOT
-* **Escrow Inteligente**: Smart contracts garantem segurança das transações
-* **Sistema de Disputas**: Resolução justa de conflitos
-* **Provedores de Liquidez**: Ganhe taxas fornecendo liquidez
-* **Integração PIX**: Pagamentos instantâneos em BRL
+* **Buy/Sell Orders**: Create orders to buy or sell DOT
+* **Smart Escrow**: Smart contracts ensure transaction security
+* **Dispute System**: Fair conflict resolution
+* **Liquidity Providers**: Earn fees by providing liquidity
+* **PIX Integration**: Instant payments in BRL
 
-## Fluxo de Transação
+## Transaction Flow
 
-### Venda de DOT (SELL)
-1. Usuário cria ordem SELL com DOT
-2. DOT depositado em escrow no smart contract
-3. LP aceita ordem e fornece chave PIX
-4. Usuário envia PIX e confirma pagamento
-5. LP verifica PIX e completa ordem
-6. DOT liberado do escrow para LP
+### Selling DOT (SELL)
+1. User creates SELL order with DOT
+2. DOT deposited in escrow in smart contract
+3. LP accepts order and provides PIX key
+4. User sends PIX and confirms payment
+5. LP verifies PIX and completes order
+6. DOT released from escrow to LP
 
-### Compra de DOT (BUY)
-1. Usuário cria ordem BUY
-2. LP aceita e deposita DOT em escrow
-3. LP fornece chave PIX
-4. Usuário envia PIX e confirma
-5. LP verifica e completa
-6. DOT liberado para usuário
+### Buying DOT (BUY)
+1. User creates BUY order
+2. LP accepts and deposits DOT in escrow
+3. LP provides PIX key
+4. User sends PIX and confirms
+5. LP verifies and completes
+6. DOT released to user
 
-## Autenticação
+## Authentication
 
-Use o endpoint `/api/v1/auth/wallet` para obter um token JWT.
-Adicione o token no header: `Authorization: Bearer <token>`
+Use the `/api/v1/auth/wallet` endpoint to obtain a JWT token.
+Add the token in the header: `Authorization: Bearer <token>`
 
 ## Blockchain
 

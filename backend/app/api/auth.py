@@ -30,24 +30,24 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 @router.post(
     "/wallet",
     response_model=TokenResponse,
-    summary="Autenticar com Polkadot.js wallet",
+    summary="Authenticate with Polkadot.js wallet",
     description="""
-    Autentica usuário usando assinatura da wallet Polkadot.js.
+    Authenticates user using Polkadot.js wallet signature.
     
-    **Fluxo:**
-    1. Frontend gera mensagem aleatória
-    2. Usuário assina com wallet
-    3. Backend valida assinatura
-    4. Retorna JWT token
+    **Flow:**
+    1. Frontend generates random message
+    2. User signs with wallet
+    3. Backend validates signature
+    4. Returns JWT token
     
-    **Uso do Token:**
-    - Adicione o token no header: `Authorization: Bearer <token>`
-    - Token expira em 30 minutos
-    - Use em todos os endpoints protegidos
+    **Token Usage:**
+    - Add token in header: `Authorization: Bearer <token>`
+    - Token expires in 30 minutes
+    - Use in all protected endpoints
     """,
     responses={
         200: {
-            "description": "Autenticação bem-sucedida",
+            "description": "Authentication successful",
             "content": {
                 "application/json": {
                     "example": {
@@ -57,7 +57,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
                 }
             }
         },
-        401: {"description": "Assinatura inválida"}
+        401: {"description": "Invalid signature"}
     }
 )
 async def authenticate_wallet(
@@ -109,21 +109,21 @@ async def authenticate_wallet(
 @router.get(
     "/me",
     response_model=UserResponse,
-    summary="Obter usuário autenticado",
+    summary="Get authenticated user",
     description="""
-    Retorna informações do usuário autenticado.
+    Returns authenticated user information.
     
-    **Requer:** Token JWT no header Authorization
+    **Requires:** JWT token in Authorization header
     
-    **Retorna:**
-    - Informações do perfil
-    - Limites de compra/venda
-    - Estatísticas de ordens
-    - Nível de verificação
+    **Returns:**
+    - Profile information
+    - Buy/sell limits
+    - Order statistics
+    - Verification level
     """,
     responses={
         200: {
-            "description": "Dados do usuário",
+            "description": "User data",
             "content": {
                 "application/json": {
                     "example": {
@@ -142,8 +142,8 @@ async def authenticate_wallet(
                 }
             }
         },
-        401: {"description": "Token inválido ou expirado"},
-        404: {"description": "Usuário não encontrado"}
+        401: {"description": "Invalid or expired token"},
+        404: {"description": "User not found"}
     }
 )
 async def get_current_user(

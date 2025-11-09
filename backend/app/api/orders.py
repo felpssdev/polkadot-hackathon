@@ -28,26 +28,26 @@ async def get_current_user(db: Session = Depends(get_db)) -> User:
     "/",
     response_model=OrderResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Criar nova ordem",
+    summary="Create new order",
     description="""
-    Criar uma nova ordem de compra ou venda de DOT.
+    Create a new DOT buy or sell order.
     
-    **Tipos de Ordem:**
-    - **BUY**: Usuário quer comprar DOT (pagará PIX ao LP)
-    - **SELL**: Usuário quer vender DOT (receberá PIX do LP)
+    **Order Types:**
+    - **BUY**: User wants to buy DOT (will pay PIX to LP)
+    - **SELL**: User wants to sell DOT (will receive PIX from LP)
     
-    **Limites:**
-    - Usuários não verificados: $1 USD para compra, $100 USD para venda
-    - Verificados: limites maiores baseados no nível de verificação
+    **Limits:**
+    - Unverified users: $1 USD for buy, $100 USD for sell
+    - Verified: higher limits based on verification level
     
-    **Fluxo:**
-    1. Ordem criada com status PENDING
-    2. DOT depositado em escrow no smart contract (para SELL)
-    3. Ordem fica disponível para LPs aceitarem
+    **Flow:**
+    1. Order created with PENDING status
+    2. DOT deposited in escrow in smart contract (for SELL)
+    3. Order becomes available for LPs to accept
     """,
     responses={
         201: {
-            "description": "Ordem criada com sucesso",
+            "description": "Order created successfully",
             "content": {
                 "application/json": {
                     "example": {
@@ -72,8 +72,8 @@ async def get_current_user(db: Session = Depends(get_db)) -> User:
                 }
             }
         },
-        400: {"description": "Falha ao criar ordem - limites excedidos ou dados inválidos"},
-        401: {"description": "Não autenticado"},
+        400: {"description": "Failed to create order - limits exceeded or invalid data"},
+        401: {"description": "Not authenticated"},
     }
 )
 async def create_order(
@@ -213,25 +213,25 @@ async def complete_order(
 @router.post(
     "/{order_id}/cancel",
     response_model=OrderResponse,
-    summary="Cancelar ordem",
+    summary="Cancel order",
     description="""
-    Cancela uma ordem e reembolsa DOT do escrow.
+    Cancels an order and refunds DOT from escrow.
     
-    **Restrições:**
-    - Apenas o criador da ordem pode cancelar
-    - Apenas ordens PENDING ou ACCEPTED podem ser canceladas
-    - DOT é automaticamente reembolsado do smart contract
+    **Restrictions:**
+    - Only order creator can cancel
+    - Only PENDING or ACCEPTED orders can be cancelled
+    - DOT is automatically refunded from smart contract
     
-    **Casos de Uso:**
-    - Usuário desistiu da transação
-    - Nenhum LP aceitou a tempo
-    - Erro na criação da ordem
+    **Use Cases:**
+    - User gave up on transaction
+    - No LP accepted in time
+    - Error in order creation
     """,
     responses={
-        200: {"description": "Ordem cancelada com sucesso"},
-        403: {"description": "Não autorizado - não é o dono da ordem"},
-        400: {"description": "Ordem não pode ser cancelada neste status"},
-        404: {"description": "Ordem não encontrada"}
+        200: {"description": "Order cancelled successfully"},
+        403: {"description": "Not authorized - not the order owner"},
+        400: {"description": "Order cannot be cancelled in this status"},
+        404: {"description": "Order not found"}
     }
 )
 async def cancel_order(
@@ -275,29 +275,29 @@ async def cancel_order(
 @router.post(
     "/{order_id}/dispute",
     response_model=OrderResponse,
-    summary="Criar disputa",
+    summary="Create dispute",
     description="""
-    Cria uma disputa para uma ordem em andamento.
+    Creates a dispute for an ongoing order.
     
-    **Quando usar:**
-    - Pagamento PIX não foi recebido (comprador)
-    - Pagamento PIX foi enviado mas LP não confirmou (vendedor)
-    - Problemas na transação
+    **When to use:**
+    - PIX payment was not received (buyer)
+    - PIX payment was sent but LP did not confirm (seller)
+    - Transaction problems
     
-    **Restrições:**
-    - Disponível apenas em status PAYMENT_SENT
-    - Pode ser chamado por comprador ou vendedor
-    - Congela fundos no escrow até resolução
+    **Restrictions:**
+    - Available only in PAYMENT_SENT status
+    - Can be called by buyer or seller
+    - Freezes funds in escrow until resolution
     
-    **Próximos Passos:**
-    - Admin analisa evidências
-    - Admin resolve disputa via `/resolve-dispute`
-    - Fundos são liberados para a parte favorecida
+    **Next Steps:**
+    - Admin analyzes evidence
+    - Admin resolves dispute via `/resolve-dispute`
+    - Funds are released to the favored party
     """,
     responses={
-        200: {"description": "Disputa criada com sucesso"},
-        403: {"description": "Não autorizado - não está envolvido na ordem"},
-        500: {"description": "Falha ao criar disputa no blockchain"}
+        200: {"description": "Dispute created successfully"},
+        403: {"description": "Not authorized - not involved in the order"},
+        500: {"description": "Failed to create dispute on blockchain"}
     }
 )
 async def create_dispute(
@@ -352,25 +352,25 @@ async def create_dispute(
 @router.post(
     "/{order_id}/resolve-dispute",
     response_model=OrderResponse,
-    summary="Resolver disputa (Admin)",
+    summary="Resolve dispute (Admin)",
     description="""
-    Resolve uma disputa existente. **Apenas Admin.**
+    Resolves an existing dispute. **Admin only.**
     
-    **Parâmetros:**
-    - `favor_buyer`: true = transfere DOT para comprador, false = transfere para vendedor
+    **Parameters:**
+    - `favor_buyer`: true = transfers DOT to buyer, false = transfers to seller
     
-    **Processo:**
-    1. Admin analisa evidências (comprovantes PIX, mensagens)
-    2. Decide a favor de uma das partes
-    3. Smart contract transfere fundos automaticamente
-    4. Ordem marcada como COMPLETED
+    **Process:**
+    1. Admin analyzes evidence (PIX receipts, messages)
+    2. Decides in favor of one party
+    3. Smart contract transfers funds automatically
+    4. Order marked as COMPLETED
     
-    **TODO:** Implementar verificação de admin real (atualmente usa contract owner)
+    **TODO:** Implement real admin verification (currently uses contract owner)
     """,
     responses={
-        200: {"description": "Disputa resolvida com sucesso"},
-        400: {"description": "Ordem não está em disputa"},
-        500: {"description": "Falha ao resolver disputa no blockchain"}
+        200: {"description": "Dispute resolved successfully"},
+        400: {"description": "Order is not in dispute"},
+        500: {"description": "Failed to resolve dispute on blockchain"}
     }
 )
 async def resolve_dispute(
@@ -421,23 +421,23 @@ async def resolve_dispute(
 
 @router.get(
     "/{order_id}/blockchain",
-    summary="Consultar ordem na blockchain",
+    summary="Query order on blockchain",
     description="""
-    Consulta dados da ordem diretamente no smart contract.
+    Queries order data directly from the smart contract.
     
-    **Uso:**
-    - Verificação de sincronização entre DB e blockchain
-    - Debugging de inconsistências
-    - Auditoria de transações
+    **Usage:**
+    - Verification of synchronization between DB and blockchain
+    - Debugging inconsistencies
+    - Transaction auditing
     
-    **Retorna:**
-    - Dados do banco de dados local
-    - Dados do smart contract
-    - Status de sincronização (synced/out_of_sync)
+    **Returns:**
+    - Local database data
+    - Smart contract data
+    - Synchronization status (synced/out_of_sync)
     """,
     responses={
         200: {
-            "description": "Dados da ordem na blockchain",
+            "description": "Order data on blockchain",
             "content": {
                 "application/json": {
                     "example": {
@@ -455,7 +455,7 @@ async def resolve_dispute(
                 }
             }
         },
-        404: {"description": "Ordem não encontrada ou não está na blockchain"}
+        404: {"description": "Order not found or not on blockchain"}
     }
 )
 async def get_blockchain_order(
