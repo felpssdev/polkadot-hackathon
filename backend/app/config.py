@@ -32,7 +32,11 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
     
     # PIX
-    pix_mock_enabled: bool = True
+    pix_mock_enabled: bool = True  # Backward compatibility - use pix_provider instead
+    pix_provider: str = "mock"  # Options: mock, starkbank
+    starkbank_environment: Optional[str] = None  # sandbox or production
+    starkbank_project_id: Optional[str] = None
+    starkbank_private_key: Optional[str] = None
     
     # Limits
     default_buy_limit_usd: float = 1.0

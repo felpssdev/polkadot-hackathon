@@ -1,22 +1,128 @@
-import qrcode
-import io
-import base64
+"""
+PIX Service
+
+Service for PIX payment integration with support for multiple providers.
+
+Current Status:
+- MOCK: Using MockProvider for development/testing
+- Real providers (Stark Bank) are ready for implementation
+
+To switch providers:
+1. Set PIX_PROVIDER environment variable (mock, starkbank)
+2. Configure provider-specific credentials
+3. Service automatically selects and initializes provider
+
+For migration guide, see: docs/pix-integration.md
+"""
 from typing import Dict, Any, Optional
-import random
-import string
 import logging
 
 from app.config import settings
+from app.services.pix.providers import MockProvider, BasePIXProvider
+
+# StarkBankProvider is optional (skeleton only)
+try:
+    from app.services.pix.providers import StarkBankProvider
+except ImportError:
+    StarkBankProvider = None
 
 logger = logging.getLogger(__name__)
 
 
 class PIXService:
-    """Service for PIX payment integration (Mock)"""
+    """
+    PIX payment service with provider abstraction.
+    
+    This service delegates to provider implementations:
+    - MockProvider: For development/testing (current)
+    - StarkBankProvider: For production (skeleton ready)
+    
+    Provider selection:
+    1. Check PIX_MOCK_ENABLED (backward compatibility)
+    2. Check PIX_PROVIDER environment variable
+    3. Fallback to mock if provider unavailable
+    
+    Current mode: MOCK (PIX_MOCK_ENABLED=True)
+    """
     
     def __init__(self):
-        self.mock_enabled = settings.pix_mock_enabled
-        self.mock_transactions: Dict[str, Dict] = {}
+        """Initialize PIX service with appropriate provider"""
+        self.provider: BasePIXProvider = self._initialize_provider()
+        self.logger = logging.getLogger(__name__)
+        
+        # Log current provider status
+        provider_name = self.provider.__class__.__name__
+        if isinstance(self.provider, MockProvider):
+            self.logger.warning(
+                "PIX service is using MOCK mode - transactions are simulated. "
+                "For production, configure a real provider (e.g., Stark Bank)."
+            )
+        else:
+            self.logger.info(f"PIX service initialized with provider: {provider_name}")
+    
+    def _initialize_provider(self) -> BasePIXProvider:
+        """
+        Initialize PIX provider based on configuration.
+        
+        Priority:
+        1. PIX_MOCK_ENABLED=True → MockProvider (backward compatibility)
+        2. PIX_PROVIDER=mock → MockProvider
+        3. PIX_PROVIDER=starkbank → StarkBankProvider (if credentials available)
+        4. Fallback to MockProvider
+        
+        Returns:
+            Initialized provider instance
+        """
+        # Backward compatibility: check PIX_MOCK_ENABLED first
+        if settings.pix_mock_enabled:
+            logger.info("PIX_MOCK_ENABLED=True - using MockProvider")
+            return MockProvider()
+        
+        # New way: check PIX_PROVIDER
+        provider_name = getattr(settings, 'pix_provider', 'mock').lower()
+        
+        if provider_name == 'mock':
+            logger.info("PIX_PROVIDER=mock - using MockProvider")
+            return MockProvider()
+        
+        elif provider_name == 'starkbank':
+            if StarkBankProvider is None:
+                logger.warning(
+                    "PIX_PROVIDER=starkbank but StarkBankProvider is not available. "
+                    "Falling back to MockProvider."
+                )
+                return MockProvider()
+            
+            # Check if credentials are available
+            has_credentials = (
+                hasattr(settings, 'starkbank_project_id') and 
+                settings.starkbank_project_id and
+                hasattr(settings, 'starkbank_private_key') and 
+                settings.starkbank_private_key
+            )
+            
+            if has_credentials:
+                try:
+                    logger.info("PIX_PROVIDER=starkbank - initializing StarkBankProvider")
+                    return StarkBankProvider()
+                except Exception as e:
+                    logger.error(f"Failed to initialize StarkBankProvider: {e}")
+                    logger.warning("Falling back to MockProvider")
+                    return MockProvider()
+            else:
+                logger.warning(
+                    "PIX_PROVIDER=starkbank but credentials not configured. "
+                    "Set STARKBANK_PROJECT_ID and STARKBANK_PRIVATE_KEY. "
+                    "Falling back to MockProvider."
+                )
+                return MockProvider()
+        
+        else:
+            logger.warning(
+                f"Unknown PIX_PROVIDER={provider_name}. "
+                "Valid options: mock, starkbank. Falling back to MockProvider."
+            )
+            return MockProvider()
     
     def generate_pix_qr_code(
         self,
@@ -26,134 +132,85 @@ class PIXService:
         city: str = "Sao Paulo"
     ) -> Dict[str, Any]:
         """
-        Generate PIX QR Code
+        Generate PIX QR Code for payment.
         
-        In production, this would use a proper PIX API (Stark Bank, etc.)
-        For now, it's mocked
+        Delegates to the configured provider.
+        
+        Args:
+            pix_key: PIX key (CPF, email, phone, or random key)
+            amount: Payment amount in BRL
+            recipient_name: Name of the recipient
+            city: City of the recipient
+            
+        Returns:
+            Dict containing:
+                - txid: Transaction ID
+                - qr_code: QR code string
+                - qr_code_image: Base64 encoded QR code image
+                - pix_key: PIX key used
+                - amount: Payment amount
+                
+        Raises:
+            Exception: If QR code generation fails
         """
-        try:
-            # Generate txid
-            txid = self._generate_txid()
-            
-            # PIX payload (simplified - real PIX uses EMV format)
-            pix_payload = self._generate_pix_payload(
-                pix_key=pix_key,
-                amount=amount,
-                recipient_name=recipient_name,
-                city=city,
-                txid=txid
-            )
-            
-            # Generate QR code image
-            qr = qrcode.QRCode(version=1, box_size=10, border=5)
-            qr.add_data(pix_payload)
-            qr.make(fit=True)
-            
-            img = qr.make_image(fill_color="black", back_color="white")
-            
-            # Convert to base64
-            buffer = io.BytesIO()
-            img.save(buffer, format="PNG")
-            img_base64 = base64.b64encode(buffer.getvalue()).decode()
-            
-            # Store mock transaction
-            if self.mock_enabled:
-                self.mock_transactions[txid] = {
-                    "txid": txid,
-                    "pix_key": pix_key,
-                    "amount": amount,
-                    "status": "pending",
-                    "qr_code": pix_payload
-                }
-            
-            logger.info(f"Generated PIX QR code for {amount} BRL to {pix_key}")
-            
-            return {
-                "txid": txid,
-                "qr_code": pix_payload,
-                "qr_code_image": f"data:image/png;base64,{img_base64}",
-                "pix_key": pix_key,
-                "amount": amount
-            }
-            
-        except Exception as e:
-            logger.error(f"Error generating PIX QR code: {e}")
-            raise
+        return self.provider.generate_pix_qr_code(
+            pix_key=pix_key,
+            amount=amount,
+            recipient_name=recipient_name,
+            city=city
+        )
     
     def verify_payment(self, txid: str) -> Optional[Dict[str, Any]]:
         """
-        Verify PIX payment
+        Verify PIX payment status.
         
-        In production, this would check with the bank API
-        """
-        try:
-            if self.mock_enabled:
-                transaction = self.mock_transactions.get(txid)
-                if transaction:
-                    return {
-                        "txid": txid,
-                        "status": transaction["status"],
-                        "amount": transaction["amount"],
-                        "pix_key": transaction["pix_key"]
-                    }
-            
-            # In production: call bank API to verify payment
-            logger.info(f"Verifying PIX payment {txid}")
-            return None
-            
-        except Exception as e:
-            logger.error(f"Error verifying payment: {e}")
-            return None
-    
-    def mock_confirm_payment(self, txid: str) -> bool:
-        """Mock: Simulate payment confirmation (for testing)"""
-        if txid in self.mock_transactions:
-            self.mock_transactions[txid]["status"] = "confirmed"
-            logger.info(f"Mock: Payment {txid} confirmed")
-            return True
-        return False
-    
-    def _generate_txid(self) -> str:
-        """Generate transaction ID"""
-        chars = string.ascii_uppercase + string.digits
-        return ''.join(random.choice(chars) for _ in range(25))
-    
-    def _generate_pix_payload(
-        self,
-        pix_key: str,
-        amount: float,
-        recipient_name: str,
-        city: str,
-        txid: str
-    ) -> str:
-        """
-        Generate PIX payload (simplified)
+        Delegates to the configured provider.
         
-        In production, use proper EMV QR Code format:
-        https://www.bcb.gov.br/content/estabilidadefinanceira/pix/Regulamento_Pix/II_ManualdePadroesparaIniciacaodoPix.pdf
+        Args:
+            txid: Transaction ID to verify
+            
+        Returns:
+            Dict with payment information or None if not found
         """
-        # Simplified version - in production use proper EMV format
-        payload = f"PIX|KEY:{pix_key}|AMOUNT:{amount:.2f}|TXID:{txid}|NAME:{recipient_name}|CITY:{city}"
-        return payload
+        return self.provider.verify_payment(txid)
     
     def validate_pix_key(self, pix_key: str, key_type: str) -> bool:
-        """Validate PIX key format"""
-        # Basic validation - in production, use proper validation
-        if key_type == "cpf":
-            # Remove formatting
-            cpf = ''.join(filter(str.isdigit, pix_key))
-            return len(cpf) == 11
-        elif key_type == "email":
-            return "@" in pix_key and "." in pix_key
-        elif key_type == "phone":
-            phone = ''.join(filter(str.isdigit, pix_key))
-            return len(phone) >= 10
-        elif key_type == "random":
-            return len(pix_key) == 32  # EVP format
+        """
+        Validate PIX key format.
         
-        return False
+        Delegates to the configured provider.
+        
+        Args:
+            pix_key: PIX key to validate
+            key_type: Type of key (cpf, email, phone, random)
+            
+        Returns:
+            True if key is valid, False otherwise
+        """
+        return self.provider.validate_pix_key(pix_key, key_type)
+    
+    def mock_confirm_payment(self, txid: str) -> bool:
+        """
+        MOCK: Manually confirm a payment (for testing only).
+        
+        This method is only available when using MockProvider.
+        In production with real providers, payments are confirmed via webhook.
+        
+        Args:
+            txid: Transaction ID to confirm
+            
+        Returns:
+            True if confirmed, False if transaction not found or not using mock
+        """
+        if isinstance(self.provider, MockProvider):
+            return self.provider.mock_confirm_payment(txid)
+        else:
+            self.logger.warning(
+                "mock_confirm_payment() is only available with MockProvider. "
+                "Real providers use webhooks for payment confirmation."
+            )
+            return False
 
 
 # Global instance
 pix_service = PIXService()
-

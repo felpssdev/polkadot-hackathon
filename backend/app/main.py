@@ -75,10 +75,13 @@ Add the token in the header: `Authorization: Bearer <token>`
 
 ## Development Notes
 
-**Mock Services:**
-- PIX payment verification is mocked for development
-- Set `PIX_MOCK_ENABLED=False` for production
+**PIX Payment Service:**
+- **MOCK MODE ACTIVE**: PIX payment verification is currently mocked for development/testing
+- Current provider: `mock` (simulated transactions in memory)
+- To switch to real provider: Set `PIX_PROVIDER=starkbank` and configure credentials
 - Mock allows testing without real PIX integration
+- For production migration guide, see: `/docs/pix-integration.md`
+- **WARNING**: Mock transactions are lost on server restart
 
 **Authentication:**
 - JWT-based authentication via Polkadot.js wallet signature
@@ -127,6 +130,14 @@ app.add_middleware(
 app.include_router(auth.router, prefix=settings.api_prefix)
 app.include_router(orders.router, prefix=settings.api_prefix)
 app.include_router(liquidity_providers.router, prefix=settings.api_prefix)
+
+# Webhooks (no prefix - direct access)
+try:
+    from app.api import webhooks
+    app.include_router(webhooks.router)
+except ImportError:
+    # Webhooks module is optional
+    pass
 
 
 @app.on_event("startup")

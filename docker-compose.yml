@@ -15,6 +15,10 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - POLKADOT_NODE_URL=wss://rococo-rpc.polkadot.io
       - PIX_MOCK_ENABLED=True
+      - PIX_PROVIDER=mock
+      - STARKBANK_ENVIRONMENT=${STARKBANK_ENVIRONMENT:-sandbox}
+      - STARKBANK_PROJECT_ID=${STARKBANK_PROJECT_ID:-}
+      - STARKBANK_PRIVATE_KEY=${STARKBANK_PRIVATE_KEY:-}
       - SECRET_KEY=dev-secret-key-change-in-production
       - CONTRACT_ADDRESS=${CONTRACT_ADDRESS:-}
       - CONTRACT_METADATA_PATH=/app/contracts/polkapay_escrow.json
